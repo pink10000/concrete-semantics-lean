@@ -67,7 +67,6 @@ theorem rev_involutive: ∀ l: mylist X, rev' (rev' l) = l := by
 -- 2.6, p19
 
 -- 2.7, p19
-
 def pre_order: tree X -> List X -- using real List, not mylist
   | tree.tip => List.nil
   | tree.node l val r => [val] ++ pre_order l ++ pre_order r
@@ -76,12 +75,13 @@ def post_order: tree X -> List X -- using real List, not mylist
   | tree.tip => List.nil
   | tree.node l val r => post_order l ++ post_order r ++ [val]
 
-def example_tree := tree.node (tree.node tree.tip 2 tree.tip) 1 (tree.node tree.tip 3 tree.tip)
---  1
--- 2 3
+def ex_2_7_tree := tree.node (tree.node tree.tip 2 tree.tip) 1 (tree.node tree.tip 3 tree.tip)
+--   1
+--  / \
+-- 2   3
 
-#eval pre_order example_tree -- [1, 2, 3]
-#eval post_order example_tree -- [2, 3, 1]
+#eval pre_order ex_2_7_tree -- [1, 2, 3]
+#eval post_order ex_2_7_tree -- [2, 3, 1]
 
 theorem pre_order_mirror_is_rev_post_order: ∀ (t: tree X), pre_order (mirror t) = List.reverse (post_order t) := by
   intro t
@@ -94,5 +94,85 @@ theorem pre_order_mirror_is_rev_post_order: ∀ (t: tree X), pre_order (mirror t
 -- 2.9, p21
 
 -- 2.10, p25
+-- binary tree skeleton
+inductive tree0 where
+  | tip -- null, not a leaf
+  | node (l: tree0) (r: tree0) -- inner nodes and leaves
+deriving Repr
+
+def nodes: tree0 -> Nat
+  | tree0.tip => 0
+  | tree0.node l r => 1 + nodes l + nodes r
+
+def ex_tree0_3 := tree0.node (tree0.node tree0.tip tree0.tip) (tree0.node tree0.tip tree0.tip)
+--   o
+--  / \
+-- o   o
+def ex_tree0_2 := tree0.node (tree0.node tree0.tip tree0.tip) tree0.tip
+--   o
+--  /
+-- o
+#eval nodes ex_tree0_3 -- 3
+
+-- creates a new tree E from tree `t` with
+-- recurrence |E[n]| = 1 + 2|E[n-1]| = 2^n - 1 + 2^n * (nodes t)
+def explode: Nat -> tree0 -> tree0
+  | 0, t => t
+  | Nat.succ n, t => explode n (tree0.node t t)
+
+#eval nodes (explode 2 ex_tree0_2) -- 11 nodes
+#eval explode 1 ex_tree0_2
+--      o
+--    /   \
+--   o     o
+--  /     /
+-- o     o
+
+example: ex_tree0_2.node ex_tree0_2 = explode 1 ex_tree0_2 := rfl -- lhs is weird lean syntax that creates a new tree with l = r = the 1 given tree
+example: (explode 2 tree0.tip) = ex_tree0_3 := rfl
+
+
+theorem explode_step_equiv: ∀ (n: Nat) (t: tree0), explode (n+1) t = (explode n t).node (explode n t) := by
+  intros n t
+  induction n
+  case zero => simp [explode]
+  case succ n' ih => simp [explode]; sorry
+
+example: k - 1 = k + -1 := by
+rw [sub_eq_add_neg]
+
+example: 1 + (2 - 1) = 2 := by
+  linarith
+  -- rw [<- add_comm_sub] -- doesn't work
+
+example: 2 - 1 + 1 = 2 := by
+  linarith
+  -- rw [sub_add_cancel] -- neither work
+  -- rw [sub_add_comm]
+
+theorem explode_recurrence: ∀ (n: Nat) (t: tree0), nodes (explode n t) = 2^n - 1 + 2^n * (nodes t) := by
+  intros n t
+  induction n
+  case zero => simp [explode]
+  case succ n' ih =>
+    rw [explode_step_equiv]
+    simp [nodes, ih]
+    rw [<- add_assoc (1) (2 ^ n' - 1) (2 ^ n' * nodes t)]
+    rw [add_comm (2 ^ n' - 1) (2 ^ n' * nodes t)]
+    rw [add_assoc (1 + (2 ^ n' - 1)) (2 ^ n' * nodes t)]
+    rw [<- add_assoc (2 ^ n' * nodes t) (2 ^ n' * nodes t)]
+    rw [<- two_mul, <- mul_assoc, <- mul_comm (2 ^ n') (2), <- pow_succ]
+    rw [add_comm (2 ^ (n' + 1) * nodes t)]
+    rw [<- add_assoc]
+    rw [add_comm 1]
+    have cancel: 2 ^ n' - 1 + 1 = 2 ^ n' := by
+      -- apply [sub_add_cancel (2 ^ n') (1) (1)] -- why doesn't it work
+      sorry
+    rw [cancel]
+    have assoc: 2 ^ n' + (2 ^ n' - 1) = (2 ^ n' + 2 ^ n') - 1 := by
+      sorry
+    rw [assoc]
+    rw [<- two_mul, <- mul_comm (2 ^ n') (2), <- pow_succ]
+
 
 -- 2.11, p25
