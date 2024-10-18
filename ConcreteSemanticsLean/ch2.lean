@@ -113,7 +113,6 @@ theorem sum_tree_is_sum_list : ∀ t: tree Nat, sum_tree t = sum (contents t) :=
 -- 2.8, p19
 
 -- 2.9, p21
-
 /--
 reverses list `l` and appends it to `acc`
 tail-recursive = can be compiled to a loop
@@ -128,29 +127,24 @@ def itrev {X} (l : mylist X) (acc : mylist X) : mylist X :=
 
 lemma snoc_append (l : mylist X) (x : X) (b : mylist X) : ((snoc l x) ++ b) = l ++ (x :: b) := by
   induction l
-  case nil =>
-    simp [snoc, concat]
-  case cons h t ih =>
-    simp [snoc, concat]
-    rw [ih]
+  case nil => simp [snoc, concat]
+  case cons h t ih => simp [snoc, concat]; rw [ih]
 
 lemma itrev_rev_prepend : ∀ (a b : mylist X), itrev a b = (rev' a) ++ b := by
   intro a b
-  induction a
+  induction a generalizing b
   case nil => simp [itrev, concat]
-  case cons x l ih =>
-    simp [itrev, rev']
-    sorry -- i think rev' and snoc can be better defined
+  case cons x l ih => simp [itrev, rev']; rw [snoc_append, ih (x :: b)]
 
+lemma itrev_rev_empty : ∀ (l : mylist X), itrev l [] = rev' l := by
+  intro l; rw [itrev_rev_prepend l [], concat_empty]
 
-lemma itrev_rev_empty : ∀ (l acc : mylist X), itrev l [] = reverse l := by
-  intro l h
-  induction l
-  case nil => simp [itrev, reverse]
-  case cons a l ih =>
-    simp [itrev, snoc]
-    sorry
-
+def itadd (a b : Nat) : Nat := match a with | 0 => b | Nat.succ a' => itadd a' (Nat.succ b)
+lemma itadd_eq_add : ∀ (a b : Nat), itadd a b = a + b := by
+  intro a b
+  induction a generalizing b
+  case zero => simp [itadd]
+  case succ n ih => simp [itadd]; rw [ih (b + 1)]; linarith
 
 
 -- 2.10, p25
