@@ -36,6 +36,7 @@ theorem count_x_le_len [DecidableEq X] : ∀ (elm : X) (l : mylist X), count elm
 
 
 -- 2.4, p15
+-- append
 def snoc: mylist X -> X -> mylist X
   | mylist.nil, b => b :: mylist.nil
   | a :: l, b => a :: (snoc l b)
@@ -125,13 +126,22 @@ def itrev {X} (l : mylist X) (acc : mylist X) : mylist X :=
   | mylist.nil => acc
   | a :: l' => itrev l' (a :: acc)
 
-lemma itrev_rev_prepend : ∀ (a b : mylist X), itrev a b = (reverse a) ++ b := by
+lemma snoc_append (l : mylist X) (x : X) (b : mylist X) : ((snoc l x) ++ b) = l ++ (x :: b) := by
+  induction l
+  case nil =>
+    simp [snoc, concat]
+  case cons h t ih =>
+    simp [snoc, concat]
+    rw [ih]
+
+lemma itrev_rev_prepend : ∀ (a b : mylist X), itrev a b = (rev' a) ++ b := by
   intro a b
   induction a
   case nil => simp [itrev, concat]
   case cons x l ih =>
-    simp [itrev, concat]
+    simp [itrev, rev']
     sorry -- i think rev' and snoc can be better defined
+
 
 lemma itrev_rev_empty : ∀ (l acc : mylist X), itrev l [] = reverse l := by
   intro l h
