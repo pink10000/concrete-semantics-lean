@@ -15,10 +15,10 @@ notation x " :: " l => (mylist.cons x l)
 notation "[]" => mylist.nil
 
 #check mylist.cons 1 mylist.nil
-def append (l : mylist X) (a : X) : (mylist X) := a :: l
+def prepend (l : mylist X) (a : X) : (mylist X) := a :: l
 
-#eval append [] 1
-#check append (1 :: []) 2
+#eval prepend [] 1
+#check prepend (1 :: []) 2
 
 def reverse (l : mylist X) (acc : mylist X) : (mylist X) :=
   match l with
