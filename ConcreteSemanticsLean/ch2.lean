@@ -68,6 +68,27 @@ theorem rev_involutive: ∀ l: mylist X, rev' (rev' l) = l := by
 
 -- 2.7, p19
 
+def pre_order: tree X -> List X -- using real List, not mylist
+  | tree.tip => List.nil
+  | tree.node l val r => [val] ++ pre_order l ++ pre_order r
+
+def post_order: tree X -> List X -- using real List, not mylist
+  | tree.tip => List.nil
+  | tree.node l val r => post_order l ++ post_order r ++ [val]
+
+def example_tree := tree.node (tree.node tree.tip 2 tree.tip) 1 (tree.node tree.tip 3 tree.tip)
+--  1
+-- 2 3
+
+#eval pre_order example_tree -- [1, 2, 3]
+#eval post_order example_tree -- [2, 3, 1]
+
+theorem pre_order_mirror_is_rev_post_order: ∀ (t: tree X), pre_order (mirror t) = List.reverse (post_order t) := by
+  intro t
+  induction t
+  case tip => rfl
+  case node l val r lih rih => simp [mirror, pre_order, post_order]; rw [lih, rih]
+
 -- 2.8, p19
 
 -- 2.9, p21
