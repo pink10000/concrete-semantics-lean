@@ -54,4 +54,8 @@ def type1_list := (type1.A :: type1.B :: type1.C :: [])
 inductive tree (X: Type) where
 | tip
 | node (left: tree X) (node_val: X) (right: tree X)
+
+def mirror: tree X -> tree X
+  | tree.tip => tree.tip
+  | tree.node l val r => tree.node (mirror r) val (mirror l)
 end cslib
