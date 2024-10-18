@@ -50,4 +50,8 @@ deriving Repr, DecidableEq -- this is kinda insane that you need this
 
 def type1_list := (type1.A :: type1.B :: type1.C :: [])
 
+-- exercises 2.6-2.7 use this binary tree
+inductive tree (X: Type) where
+| tip
+| node (left: tree X) (node_val: X) (right: tree X)
 end cslib
