@@ -40,6 +40,16 @@ def len (l : mylist X) : Nat :=
 #eval len ([] : mylist Nat) -- 0
 -- note, lean doesn't know what type [] is since we've told it to be implicit
 
+def concat (l1 l2 : mylist X) : mylist X :=
+  match l1 with
+  | mylist.nil => l2
+  | a :: l1' => a :: concat l1' l2
+notation l1 " ++ " l2 => concat l1 l2
+
+def sum : mylist Nat -> Nat
+  | mylist.nil => 0
+  | a :: l => a + sum l
+
 inductive type1 where
 | A
 | B
@@ -56,7 +66,7 @@ inductive tree (X: Type) where
 | node (left: tree X) (node_val: X) (right: tree X)
 
 def mirror: tree X -> tree X
-  | tree.tip => tree.tip
+  | tree.tip => tree.tip -- think of this as a null node
   | tree.node l val r => tree.node (mirror r) val (mirror l)
 
 theorem mirror_involutive: ∀ (t: tree X), mirror (mirror t) = t := by
