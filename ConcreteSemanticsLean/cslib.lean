@@ -20,6 +20,14 @@ def prepend (l : mylist X) (a : X) : (mylist X) := a :: l
 #eval prepend [] 1
 #check prepend (1 :: []) 2
 
+def append (l : mylist X) (a : X) : (mylist X) :=
+  match l with
+  | mylist.nil => a :: []
+  | x :: l' => x :: append l' a
+
+#eval append [] 1
+#eval append (1 :: []) 2
+
 def reverse (l : mylist X) (acc : mylist X) : (mylist X) :=
   match l with
   | mylist.nil => acc
