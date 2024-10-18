@@ -2,14 +2,14 @@ import ConcreteSemanticsLean.cslib
 import Init.Prelude
 import Mathlib.Tactic.Linarith
 
--- 2.1
+-- 2.1, p15
 #eval 1 + (2: Nat) -- 3
 #eval 1 + (2: Int) -- 3
 #eval 1 - (2: Nat) -- 0
 #eval 1 - (2: Int) -- -1
--- 2.2
+-- 2.2, p15
 
--- 2.3
+-- 2.3, p15
 def count [DecidableEq X] (elm : X) (l : mylist X) : Nat :=
   match l with
   | [] => 0
@@ -34,7 +34,7 @@ theorem count_x_le_len [DecidableEq X] : ∀ (elm : X) (l : mylist X), count elm
     . simp [h]; linarith
 
 
--- 2.4
+-- 2.4, p15
 def snoc: mylist X -> X -> mylist X
   | mylist.nil, b => b :: mylist.nil
   | a :: l, b => a :: (snoc l b)
@@ -62,16 +62,16 @@ theorem rev_involutive: ∀ l: mylist X, rev' (rev' l) = l := by
     simp [rev'] -- [1] wants rev' (snoc (rev' l') a) = mylist.cons a l'
     rw [rev_snoc_is_left_app_rev, ih]
 
--- 2.5
+-- 2.5, p15
 
--- 2.6
+-- 2.6, p19
 
--- 2.7
+-- 2.7, p19
 
--- 2.8
+-- 2.8, p19
 
--- 2.9
+-- 2.9, p21
 
--- 2.10
+-- 2.10, p25
 
--- 2.11
+-- 2.11, p25
