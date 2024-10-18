@@ -28,16 +28,16 @@ def append (l : mylist X) (a : X) : (mylist X) :=
 #eval append [] 1
 #eval append (1 :: []) 2
 
-def reverse (l : mylist X) (acc : mylist X) : (mylist X) :=
+def reverse (l : mylist X) : (mylist X) :=
   match l with
-  | mylist.nil => acc
-  | a :: l' => reverse l' (a :: acc)
+  | mylist.nil => []
+  | a :: l' => append (reverse l') a
 
-#check reverse [] []
-#eval reverse (1 :: []) []
-#eval reverse (2 :: 1 :: []) []
+#check reverse []
+#eval reverse (1 :: [])
+#eval reverse (2 :: 1 :: [])
 
-example : reverse (1 :: 2 :: 3 :: []) [] = 3 :: 2 :: 1 :: [] := by rfl
+example : reverse (1 :: 2 :: 3 :: []) = 3 :: 2 :: 1 :: [] := by rfl
 
 def len (l : mylist X) : Nat :=
   match l with

@@ -125,20 +125,20 @@ def itrev {X} (l : mylist X) (acc : mylist X) : mylist X :=
   | mylist.nil => acc
   | a :: l' => itrev l' (a :: acc)
 
-lemma itrev_rev_prepend : ∀ (a b : mylist X), itrev a b = (rev' a) ++ b := by
+lemma itrev_rev_prepend : ∀ (a b : mylist X), itrev a b = (reverse a) ++ b := by
   intro a b
   induction a
-  case nil => simp [itrev, rev', concat]
+  case nil => simp [itrev, concat]
   case cons x l ih =>
-    simp [itrev, rev', concat]
+    simp [itrev, concat]
     sorry -- i think rev' and snoc can be better defined
 
-lemma itrev_rev_empty : ∀ (l acc : mylist X), itrev l [] = rev' l := by
+lemma itrev_rev_empty : ∀ (l acc : mylist X), itrev l [] = reverse l := by
   intro l h
   induction l
-  case nil => simp [itrev, rev']
+  case nil => simp [itrev, reverse]
   case cons a l ih =>
-    simp [itrev, rev', snoc]
+    simp [itrev, snoc]
     sorry
 
 
