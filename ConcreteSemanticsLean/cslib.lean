@@ -58,4 +58,14 @@ inductive tree (X: Type) where
 def mirror: tree X -> tree X
   | tree.tip => tree.tip
   | tree.node l val r => tree.node (mirror r) val (mirror l)
+
+theorem mirror_involutive: ∀ (t: tree X), mirror (mirror t) = t := by
+  intros t
+  induction t
+  case tip => rfl
+  case node l val r lih rih =>
+    simp [mirror]
+    rw [lih, rih]
+    simp -- basically `apply And.intro; rfl; rfl`
+
 end cslib
