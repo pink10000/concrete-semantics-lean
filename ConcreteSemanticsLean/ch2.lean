@@ -7,6 +7,7 @@ import Mathlib.Tactic.Linarith
 #eval 1 + (2: Int) -- 3
 #eval 1 - (2: Nat) -- 0
 #eval 1 - (2: Int) -- -1
+
 -- 2.2, p15
 
 -- 2.3, p15
@@ -35,6 +36,7 @@ theorem count_x_le_len [DecidableEq X] : ∀ (elm : X) (l : mylist X), count elm
 
 
 -- 2.4, p15
+-- append
 def snoc: mylist X -> X -> mylist X
   | mylist.nil, b => b :: mylist.nil
   | a :: l, b => a :: (snoc l b)
@@ -66,6 +68,46 @@ theorem rev_involutive: ∀ l: mylist X, rev' (rev' l) = l := by
 
 -- 2.6, p19
 
+def contents {X} (t : tree X) : (mylist X) :=
+  match t with
+  | tree.tip => mylist.nil
+  | tree.node l val r =>
+    match (l, r) with
+    | (tree.tip, tree.tip)  => val :: mylist.nil
+    | (tree.tip, _)         => val :: contents r
+    | (_, tree.tip)         => val :: contents l
+    | (_, _)                => val :: (contents l ++ contents r)
+/-
+   2
+  / \
+ 1   3
+-/
+def exampleTree : tree Nat :=
+  tree.node
+    (tree.node tree.tip 1 tree.tip)
+    2
+    (tree.node tree.tip 3 tree.tip)
+#eval contents exampleTree -- [1, 2, 3]
+
+/-
+      4
+    /   \
+   2     6
+  / \   / \
+ 1  3  5  7
+-/
+def lvl2tree : tree Nat :=
+  tree.node
+    (tree.node (tree.node tree.tip 1 tree.tip) 2 (tree.node tree.tip 3 tree.tip))
+    4
+    (tree.node (tree.node tree.tip 5 tree.tip) 6 (tree.node tree.tip 7 tree.tip))
+
+#eval contents lvl2tree -- [1, 2, 3, 4, 5, 6, 7]
+
+def sum_tree (t : tree Nat) : Nat := sum (contents t) -- defined this way because it's how it's defined...?
+theorem sum_tree_is_sum_list : ∀ t: tree Nat, sum_tree t = sum (contents t) := by intro t; rfl
+
+
 -- 2.7, p19
 def pre_order: tree X -> List X -- using real List, not mylist
   | tree.tip => List.nil
@@ -92,6 +134,39 @@ theorem pre_order_mirror_is_rev_post_order: ∀ (t: tree X), pre_order (mirror t
 -- 2.8, p19
 
 -- 2.9, p21
+/--
+reverses list `l` and appends it to `acc`
+tail-recursive = can be compiled to a loop
+
+Looks like we already defined a `reverse`, but for the
+purposes of this problem, we'll use this instead.
+--/
+def itrev {X} (l : mylist X) (acc : mylist X) : mylist X :=
+  match l with
+  | mylist.nil => acc
+  | a :: l' => itrev l' (a :: acc)
+
+lemma snoc_append (l : mylist X) (x : X) (b : mylist X) : ((snoc l x) ++ b) = l ++ (x :: b) := by
+  induction l
+  case nil => simp [snoc, concat]
+  case cons h t ih => simp [snoc, concat]; rw [ih]
+
+lemma itrev_rev_prepend : ∀ (a b : mylist X), itrev a b = (rev' a) ++ b := by
+  intro a b
+  induction a generalizing b
+  case nil => simp [itrev, concat]
+  case cons x l ih => simp [itrev, rev']; rw [snoc_append, ih (x :: b)]
+
+lemma itrev_rev_empty : ∀ (l : mylist X), itrev l [] = rev' l := by
+  intro l; rw [itrev_rev_prepend l [], concat_empty]
+
+def itadd (a b : Nat) : Nat := match a with | 0 => b | Nat.succ a' => itadd a' (Nat.succ b)
+lemma itadd_eq_add : ∀ (a b : Nat), itadd a b = a + b := by
+  intro a b
+  induction a generalizing b
+  case zero => simp [itadd]
+  case succ n ih => simp [itadd]; rw [ih (b + 1)]; linarith
+
 
 -- 2.10, p25
 -- binary tree skeleton
