@@ -66,8 +66,9 @@ theorem rev_involutive: ∀ l: mylist X, rev' (rev' l) = l := by
 
 -- 2.5, p15
 
--- 2.6, p19
 
+
+-- 2.6, p19
 def contents {X} (t : tree X) : (mylist X) :=
   match t with
   | tree.tip => mylist.nil
@@ -140,7 +141,7 @@ theorem pre_order_mirror_is_rev_post_order: ∀ (t: tree X), pre_order (mirror t
   case node l val r lih rih =>
     simp [mirror, pre_order, post_order, reverse]; rw [lih, rih]
     rw [reverse_concat, reverse_concat]; rfl
-  
+
 -- 2.8, p19
 
 -- 2.9, p21
@@ -177,7 +178,6 @@ lemma itadd_eq_add : ∀ (a b : Nat), itadd a b = a + b := by
   case zero => simp [itadd]
   case succ n ih => simp [itadd]; rw [ih (b + 1)]; linarith
 
-
 -- 2.10, p25
 -- binary tree skeleton
 inductive tree0 where
@@ -198,6 +198,7 @@ def ex_tree0_2 := tree0.node (tree0.node tree0.tip tree0.tip) tree0.tip
 --  /
 -- o
 #eval nodes ex_tree0_3 -- 3
+#eval nodes ex_tree0_2 -- 2
 
 -- creates a new tree E from tree `t` with
 -- recurrence |E[n]| = 1 + 2|E[n-1]| = 2^n - 1 + 2^n * (nodes t)
@@ -212,10 +213,11 @@ def explode: Nat -> tree0 -> tree0
 --   o     o
 --  /     /
 -- o     o
+#eval nodes (explode 1 ex_tree0_2) -- 5
 
-example: ex_tree0_2.node ex_tree0_2 = explode 1 ex_tree0_2 := rfl -- lhs is weird lean syntax that creates a new tree with l = r = the 1 given tree
-example: (explode 2 tree0.tip) = ex_tree0_3 := rfl
-
+-- lhs is weird lean syntax that creates a new tree with l = r = the 1 given tree
+example : ex_tree0_2.node ex_tree0_2 = explode 1 ex_tree0_2 := by rfl
+example : (explode 2 tree0.tip) = ex_tree0_3 := by rfl
 
 theorem explode_step_equiv: ∀ (n: Nat) (t: tree0), explode (n+1) t = (explode n t).node (explode n t) := by
   intros n t
@@ -226,11 +228,11 @@ theorem explode_step_equiv: ∀ (n: Nat) (t: tree0), explode (n+1) t = (explode 
 example: k - 1 = k + -1 := by
 rw [sub_eq_add_neg]
 
-example: 1 + (2 - 1) = 2 := by
+example : 1 + (2 - 1) = 2 := by
   linarith
   -- rw [<- add_comm_sub] -- doesn't work
 
-example: 2 - 1 + 1 = 2 := by
+example : 2 - 1 + 1 = 2 := by
   linarith
   -- rw [sub_add_cancel] -- neither work
   -- rw [sub_add_comm]
@@ -250,11 +252,11 @@ theorem explode_recurrence: ∀ (n: Nat) (t: tree0), nodes (explode n t) = 2^n -
     rw [add_comm (2 ^ (n' + 1) * nodes t)]
     rw [<- add_assoc]
     rw [add_comm 1]
-    have cancel: 2 ^ n' - 1 + 1 = 2 ^ n' := by
+    have cancel : 2 ^ n' - 1 + 1 = 2 ^ n' := by
       -- apply [sub_add_cancel (2 ^ n') (1) (1)] -- why doesn't it work
       sorry
     rw [cancel]
-    have assoc: 2 ^ n' + (2 ^ n' - 1) = (2 ^ n' + 2 ^ n') - 1 := by
+    have assoc : 2 ^ n' + (2 ^ n' - 1) = (2 ^ n' + 2 ^ n') - 1 := by
       sorry
     rw [assoc]
     rw [<- two_mul, <- mul_comm (2 ^ n') (2), <- pow_succ]
