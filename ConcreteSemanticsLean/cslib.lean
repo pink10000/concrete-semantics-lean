@@ -54,6 +54,18 @@ def concat (l1 l2 : mylist X) : mylist X :=
   | a :: l1' => a :: concat l1' l2
 notation l1 " ++ " l2 => concat l1 l2
 
+theorem append_is_concat (l : mylist X) : ∀ (a : X), append l a = l ++ (a :: []) := by
+  intro a
+  induction l
+  case nil => simp [append, concat]
+  case cons x l ih => simp [append, concat]; rw [ih]
+
+theorem concat_assoc : ∀ (l1 l2 l3 : mylist X), ((l1 ++ l2) ++ l3) = l1 ++ l2 ++ l3 := by
+  intro l1 l2 l3
+  induction l1
+  case nil => rfl
+  case cons a l1 ih => simp [concat]; rw [ih]
+
 theorem concat_empty : ∀ (l : mylist X), (l ++ []) = l := by
   intro l
   induction l

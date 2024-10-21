@@ -109,13 +109,13 @@ theorem sum_tree_is_sum_list : ∀ t: tree Nat, sum_tree t = sum (contents t) :=
 
 
 -- 2.7, p19
-def pre_order: tree X -> List X -- using real List, not mylist
-  | tree.tip => List.nil
-  | tree.node l val r => [val] ++ pre_order l ++ pre_order r
+def pre_order: tree X -> mylist X
+  | tree.tip => []
+  | tree.node l val r => (val :: []) ++ pre_order l ++ pre_order r
 
-def post_order: tree X -> List X -- using real List, not mylist
-  | tree.tip => List.nil
-  | tree.node l val r => post_order l ++ post_order r ++ [val]
+def post_order: tree X -> mylist X
+  | tree.tip => []
+  | tree.node l val r => post_order l ++ post_order r ++ (val :: [])
 
 def ex_2_7_tree := tree.node (tree.node tree.tip 2 tree.tip) 1 (tree.node tree.tip 3 tree.tip)
 --   1
@@ -125,12 +125,22 @@ def ex_2_7_tree := tree.node (tree.node tree.tip 2 tree.tip) 1 (tree.node tree.t
 #eval pre_order ex_2_7_tree -- [1, 2, 3]
 #eval post_order ex_2_7_tree -- [2, 3, 1]
 
-theorem pre_order_mirror_is_rev_post_order: ∀ (t: tree X), pre_order (mirror t) = List.reverse (post_order t) := by
+lemma reverse_concat : ∀ (l1 l2 : mylist X), reverse (l1 ++ l2) = reverse l2 ++ reverse l1 := by
+  intro l1 l2
+  induction l1 generalizing l2
+  case nil => simp [reverse, concat, concat_empty]
+  case cons a l1 ih =>
+    simp [reverse, concat]
+    rw [ih, append_is_concat, append_is_concat, concat_assoc];
+
+theorem pre_order_mirror_is_rev_post_order: ∀ (t: tree X), pre_order (mirror t) = reverse (post_order t) := by
   intro t
   induction t
   case tip => rfl
-  case node l val r lih rih => simp [mirror, pre_order, post_order]; rw [lih, rih]
-
+  case node l val r lih rih =>
+    simp [mirror, pre_order, post_order, reverse]; rw [lih, rih]
+    rw [reverse_concat, reverse_concat]; rfl
+  
 -- 2.8, p19
 
 -- 2.9, p21
