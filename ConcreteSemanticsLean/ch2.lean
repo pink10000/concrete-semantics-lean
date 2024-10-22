@@ -1,6 +1,7 @@
 import ConcreteSemanticsLean.cslib
 import Init.Prelude
 import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Ring
 
 -- 2.1, p15
 #eval 1 + (2: Nat) -- 3
@@ -214,30 +215,23 @@ def explode: Nat -> tree0 -> tree0
 --  /     /
 -- o     o
 #eval nodes (explode 1 ex_tree0_2) -- 5
+#check ex_tree0_2.node ex_tree0_2
 
 -- lhs is weird lean syntax that creates a new tree with l = r = the 1 given tree
 example : ex_tree0_2.node ex_tree0_2 = explode 1 ex_tree0_2 := by rfl
 example : (explode 2 tree0.tip) = ex_tree0_3 := by rfl
 
-theorem explode_step_equiv: ∀ (n: Nat) (t: tree0), explode (n+1) t = (explode n t).node (explode n t) := by
+theorem explode_step_equiv :
+  ∀ (n : Nat) (t : tree0), explode (n + 1) t = (explode n t).node (explode n t) := by
   intros n t
   induction n
   case zero => simp [explode]
-  case succ n' ih => simp [explode]; sorry
+  case succ n' ih =>
+    simp [explode]; sorry
 
-example: k - 1 = k + -1 := by
-rw [sub_eq_add_neg]
 
-example : 1 + (2 - 1) = 2 := by
-  linarith
-  -- rw [<- add_comm_sub] -- doesn't work
-
-example : 2 - 1 + 1 = 2 := by
-  linarith
-  -- rw [sub_add_cancel] -- neither work
-  -- rw [sub_add_comm]
-
-theorem explode_recurrence: ∀ (n: Nat) (t: tree0), nodes (explode n t) = 2^n - 1 + 2^n * (nodes t) := by
+theorem explode_recurrence :
+  ∀ (n : Nat) (t : tree0), nodes (explode n t) = 2^n - 1 + 2^n * (nodes t) := by
   intros n t
   induction n
   case zero => simp [explode]
@@ -253,11 +247,10 @@ theorem explode_recurrence: ∀ (n: Nat) (t: tree0), nodes (explode n t) = 2^n -
     rw [<- add_assoc]
     rw [add_comm 1]
     have cancel : 2 ^ n' - 1 + 1 = 2 ^ n' := by
-      -- apply [sub_add_cancel (2 ^ n') (1) (1)] -- why doesn't it work
-      sorry
+      rw [Nat.sub_add_cancel]; apply Nat.pow_pos; linarith
     rw [cancel]
     have assoc : 2 ^ n' + (2 ^ n' - 1) = (2 ^ n' + 2 ^ n') - 1 := by
-      sorry
+      rw [Nat.add_sub_assoc]; linarith
     rw [assoc]
     rw [<- two_mul, <- mul_comm (2 ^ n') (2), <- pow_succ]
 
