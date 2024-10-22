@@ -221,6 +221,13 @@ def explode: Nat -> tree0 -> tree0
 example : ex_tree0_2.node ex_tree0_2 = explode 1 ex_tree0_2 := by rfl
 example : (explode 2 tree0.tip) = ex_tree0_3 := by rfl
 
+theorem explode_double_step :
+  ∀ (t : tree0), explode 2 t = (explode 1 t).node (explode 1 t) := by intros t; simp [explode]
+theorem explode_triple_step :
+  ∀ (t : tree0), explode 3 t = (explode 2 t).node (explode 2 t) := by intros t; simp [explode]
+theorem explode_quadruple_step :
+  ∀ (t : tree0), explode 4 t = (explode 3 t).node (explode 3 t) := by intros t; simp [explode]
+
 theorem explode_step_equiv :
   ∀ (n : Nat) (t : tree0), explode (n + 1) t = (explode n t).node (explode n t) := by
   intros n t
