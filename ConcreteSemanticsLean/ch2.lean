@@ -1,6 +1,7 @@
 import ConcreteSemanticsLean.cslib
 import Init.Prelude
 import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Basic
 
 -- 2.1, p15
 #eval 1 + (2: Nat) -- 3
@@ -17,39 +18,31 @@ theorem add_zero_right : ∀ (n : Nat), add n 0 = n := by
   intro n
   induction n
   case zero => rfl
-  case succ n ih =>
-    simp [add]; apply ih
+  case succ n ih => simp [add]; apply ih
+
+theorem add_zero_left : ∀ (n : Nat), add 0 n = n := by intro n; induction n <;> rfl
 
 theorem add_one : ∀ (m : Nat), add m 1 = m + 1 := by
   intro m
   induction m
   case zero => rfl
-  case succ m ih =>
-    simp [add]; rw [ih]
-
-theorem add_succ : ∀ (n : Nat), add m (n + 1) = (add m n) + 1 := by
-  intro n
-  induction n
-  case zero => simp [add]; rw [add_zero_right]; rw [add_one]
-  case succ n ih =>
-    -- have e : (1 : Nat) + 1 = 2 := rfl
-    simp_all; rw [← ih]; sorry
-
+  case succ m ih => simp [add]; rw [ih]
 
 theorem add_is_comm : ∀ (m n : Nat), add m n = add n m := by
   intro m n
   induction m generalizing n
   case zero => rw [add_zero_right]; rfl
   case succ m ih =>
-    simp [add]; rw [ih]; sorry
+    simp [add]; rw [ih]
+    induction n
+    case zero => rw [add_zero_left]; rfl
+    case succ n ih => simp [add]; rw [ih]
 
 theorem add_is_assoc : ∀ (m n k : Nat), add m (add n k) = add (add m n) k := by
   intros m n k
-  induction k
-  case zero =>
-    rw [add_zero_right, add_zero_right]
-  case succ k ih =>
-   sorry
+  induction m generalizing n k
+  case zero => rfl
+  case succ m ihm => simp [add]; rw [ihm]
 
 -- 2.3, p15
 def count [DecidableEq X] (elm : X) (l : mylist X) : Nat :=
