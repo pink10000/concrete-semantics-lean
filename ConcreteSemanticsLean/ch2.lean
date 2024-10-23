@@ -9,10 +9,47 @@ import Mathlib.Tactic.Linarith
 #eval 1 - (2: Int) -- -1
 
 -- 2.2, p15
-def double (m : Nat) : Nat := m + m
+def double : Nat → Nat
+  | 0     => 0
+  | (n+1) => double n + 2
+
+theorem add_zero_right : ∀ (n : Nat), add n 0 = n := by
+  intro n
+  induction n
+  case zero => rfl
+  case succ n ih =>
+    simp [add]; apply ih
+
+theorem add_one : ∀ (m : Nat), add m 1 = m + 1 := by
+  intro m
+  induction m
+  case zero => rfl
+  case succ m ih =>
+    simp [add]; rw [ih]
+
+theorem add_succ : ∀ (n : Nat), add m (n + 1) = (add m n) + 1 := by
+  intro n
+  induction n
+  case zero => simp [add]; rw [add_zero_right]; rw [add_one]
+  case succ n ih =>
+    -- have e : (1 : Nat) + 1 = 2 := rfl
+    simp_all; rw [← ih]; sorry
+
 
 theorem add_is_comm : ∀ (m n : Nat), add m n = add n m := by
+  intro m n
+  induction m generalizing n
+  case zero => rw [add_zero_right]; rfl
+  case succ m ih =>
+    simp [add]; rw [ih]; sorry
 
+theorem add_is_assoc : ∀ (m n k : Nat), add m (add n k) = add (add m n) k := by
+  intros m n k
+  induction k
+  case zero =>
+    rw [add_zero_right, add_zero_right]
+  case succ k ih =>
+   sorry
 
 -- 2.3, p15
 def count [DecidableEq X] (elm : X) (l : mylist X) : Nat :=
