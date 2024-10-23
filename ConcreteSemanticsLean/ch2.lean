@@ -13,21 +13,21 @@ def double : Nat → Nat
   | 0     => 0
   | (n+1) => double n + 2
 
-theorem add_zero_right : ∀ (n : Nat), add n 0 = n := by
+lemma add_zero_right : ∀ (n : Nat), add n 0 = n := by
   intro n
   induction n
   case zero => rfl
   case succ n ih =>
     simp [add]; apply ih
 
-theorem add_one : ∀ (m : Nat), add m 1 = m + 1 := by
+lemma add_one : ∀ (m : Nat), add m 1 = m + 1 := by
   intro m
   induction m
   case zero => rfl
   case succ m ih =>
     simp [add]; rw [ih]
 
-theorem add_succ : ∀ (n : Nat), add m (n + 1) = (add m n) + 1 := by
+lemma add_succ : ∀ (n : Nat), add m (n + 1) = (add m n) + 1 := by
   intro n
   induction n
   case zero => simp [add]; rw [add_zero_right]; rw [add_one]
