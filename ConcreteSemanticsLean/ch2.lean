@@ -14,7 +14,7 @@ def double : Nat → Nat
   | 0     => 0
   | (n+1) => double n + 2
 
-theorem add_zero_right : ∀ (n : Nat), add n 0 = n := by
+lemma add_zero_right : ∀ (n : Nat), add n 0 = n := by
   intro n
   induction n
   case zero => rfl
@@ -22,7 +22,7 @@ theorem add_zero_right : ∀ (n : Nat), add n 0 = n := by
 
 theorem add_zero_left : ∀ (n : Nat), add 0 n = n := by intro n; induction n <;> rfl
 
-theorem add_one : ∀ (m : Nat), add m 1 = m + 1 := by
+lemma add_one : ∀ (m : Nat), add m 1 = m + 1 := by
   intro m
   induction m
   case zero => rfl
