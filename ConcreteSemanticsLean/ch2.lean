@@ -9,6 +9,10 @@ import Mathlib.Tactic.Linarith
 #eval 1 - (2: Int) -- -1
 
 -- 2.2, p15
+def double (m : Nat) : Nat := m + m
+
+theorem add_is_comm : ∀ (m n : Nat), add m n = add n m := by
+
 
 -- 2.3, p15
 def count [DecidableEq X] (elm : X) (l : mylist X) : Nat :=

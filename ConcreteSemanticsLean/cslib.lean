@@ -94,4 +94,9 @@ theorem mirror_involutive: ∀ (t: tree X), mirror (mirror t) = t := by
     rw [lih, rih]
     simp -- basically `apply And.intro; rfl; rfl`
 
+-- exercise 2.2
+def add : Nat -> Nat -> Nat
+  | 0, n => n
+  | Nat.succ m, n => Nat.succ (add m n)
+
 end cslib
