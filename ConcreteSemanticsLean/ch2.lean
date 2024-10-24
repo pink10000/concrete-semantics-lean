@@ -1,6 +1,7 @@
 import ConcreteSemanticsLean.cslib
 import Init.Prelude
 import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Basic
 
 section ch2_1 -- 2.1, p15
@@ -115,24 +116,34 @@ section ch2_6 -- 2.6, p19
       | (tree.tip, _)         => val :: contents r
       | (_, tree.tip)         => val :: contents l
       | (_, _)                => val :: (contents l ++ contents r)
-  /-
-    2
-    / \
-  1   3
-  -/
-  def exampleTree : tree Nat :=
-    tree.node
-      (tree.node tree.tip 1 tree.tip)
+    /-
       2
-      (tree.node tree.tip 3 tree.tip)
-  #eval contents exampleTree -- [1, 2, 3]
+      / \
+    1   3
+    -/
+   def exampleTree : tree Nat :=
+     tree.node
+       (tree.node tree.tip 1 tree.tip)
+       2
+       (tree.node tree.tip 3 tree.tip)
+   #eval contents exampleTree -- [1, 2, 3]
 
-  /-
+   /-
+         4
+       /   \
+     2     6
+     / \   / \
+   1  3  5  7
+   -/
+   def lvl2tree : tree Nat :=
+     tree.node
+       (tree.node (tree.node tree.tip 1 tree.tip) 2 (tree.node tree.tip 3 tree.tip))
+       
         4
       /   \
-    2     6
+     2     6
     / \   / \
-  1  3  5  7
+   1  3  5  7
   -/
   def lvl2tree : tree Nat :=
     tree.node
@@ -147,6 +158,37 @@ section ch2_6 -- 2.6, p19
 end ch2_6
 
 section ch2_7 -- 2.7, p19
+  def pre_order: tree X -> mylist X
+    | tree.tip => []
+    | tree.node l val r => (val :: []) ++ pre_order l ++ pre_order r
+
+  def post_order: tree X -> mylist X
+    | tree.tip => []
+    | tree.node l val r => post_order l ++ post_order r ++ (val :: [])
+
+  def ex_2_7_tree := tree.node (tree.node tree.tip 2 tree.tip) 1 (tree.node tree.tip 3 tree.tip)
+  --   1
+  --  / \
+  -- 2   3
+
+  #eval pre_order ex_2_7_tree -- [1, 2, 3]
+  #eval post_order ex_2_7_tree -- [2, 3, 1]
+
+  lemma reverse_concat : ∀ (l1 l2 : mylist X), reverse (l1 ++ l2) = reverse l2 ++ reverse l1 := by
+    intro l1 l2
+    induction l1 generalizing l2
+    case nil => simp [reverse, concat, concat_empty]
+    case cons a l1 ih =>
+      simp [reverse, concat]
+      rw [ih, append_is_concat, append_is_concat, concat_assoc];
+
+  theorem pre_order_mirror_is_rev_post_order: ∀ (t: tree X), pre_order (mirror t) = reverse (post_order t) := by
+    intro t
+    induction t
+    case tip => rfl
+    case node l val r lih rih =>
+      simp [mirror, pre_order, post_order, reverse]; rw [lih, rih]
+      rw [reverse_concat, reverse_concat]; rfl
 end ch2_7
 
 section ch2_8 -- 2.8, p19
@@ -188,6 +230,87 @@ section ch2_9 -- 2.9, p21
 end ch2_9
 
 section ch2_10 -- 2.10, p25
+  -- binary tree skeleton
+  inductive tree0 where
+    | tip -- null, not a leaf
+    | node (l: tree0) (r: tree0) -- inner nodes and leaves
+  deriving Repr
+
+  def nodes: tree0 -> Nat
+    | tree0.tip => 0
+    | tree0.node l r => 1 + nodes l + nodes r
+
+  def ex_tree0_3 := tree0.node (tree0.node tree0.tip tree0.tip) (tree0.node tree0.tip tree0.tip)
+  --   o
+  --  / \
+  -- o   o
+  def ex_tree0_2 := tree0.node (tree0.node tree0.tip tree0.tip) tree0.tip
+  --   o
+  --  /
+  -- o
+  #eval nodes ex_tree0_3 -- 3
+  #eval nodes ex_tree0_2 -- 2
+
+  -- creates a new tree E from tree `t` with
+  -- recurrence |E[n]| = 1 + 2|E[n-1]| = 2^n - 1 + 2^n * (nodes t)
+  def explode: Nat -> tree0 -> tree0
+    | 0, t => t
+    | Nat.succ n, t => explode n (tree0.node t t)
+
+  #eval nodes (explode 2 ex_tree0_2) -- 11 nodes
+  #eval explode 1 ex_tree0_2
+  --      o
+  --    /   \
+  --   o     o
+  --  /     /
+  -- o     o
+  #eval nodes (explode 1 ex_tree0_2) -- 5
+  #check ex_tree0_2.node ex_tree0_2
+
+  -- lhs is weird lean syntax that creates a new tree with l = r = the 1 given tree
+  example : ex_tree0_2.node ex_tree0_2 = explode 1 ex_tree0_2 := by rfl
+  example : (explode 2 tree0.tip) = ex_tree0_3 := by rfl
+
+  theorem explode_double_step :
+    ∀ (t : tree0), explode 2 t = (explode 1 t).node (explode 1 t) := by intros t; simp [explode]
+  theorem explode_triple_step :
+    ∀ (t : tree0), explode 3 t = (explode 2 t).node (explode 2 t) := by intros t; simp [explode]
+  theorem explode_quadruple_step :
+    ∀ (t : tree0), explode 4 t = (explode 3 t).node (explode 3 t) := by intros t; simp [explode]
+
+  theorem explode_step_equiv :
+    ∀ (n : Nat) (t : tree0), explode (n + 1) t = (explode n t).node (explode n t) := by
+    intros n t
+    induction n
+    case zero => simp [explode]
+    case succ n' ih =>
+      simp [explode]; sorry
+
+
+  theorem explode_recurrence :
+    ∀ (n : Nat) (t : tree0), nodes (explode n t) = 2^n - 1 + 2^n * (nodes t) := by
+    intros n t
+    induction n
+    case zero => simp [explode]
+    case succ n' ih =>
+      rw [explode_step_equiv]
+      simp [nodes, ih]
+      rw [<- add_assoc (1) (2 ^ n' - 1) (2 ^ n' * nodes t)]
+      rw [add_comm (2 ^ n' - 1) (2 ^ n' * nodes t)]
+      rw [add_assoc (1 + (2 ^ n' - 1)) (2 ^ n' * nodes t)]
+      rw [<- add_assoc (2 ^ n' * nodes t) (2 ^ n' * nodes t)]
+      rw [<- two_mul, <- mul_assoc, <- mul_comm (2 ^ n') (2), <- pow_succ]
+      rw [add_comm (2 ^ (n' + 1) * nodes t)]
+      rw [<- add_assoc]
+      rw [add_comm 1]
+      have cancel : 2 ^ n' - 1 + 1 = 2 ^ n' := by
+        rw [Nat.sub_add_cancel]; apply Nat.pow_pos; linarith
+      rw [cancel]
+      have assoc : 2 ^ n' + (2 ^ n' - 1) = (2 ^ n' + 2 ^ n') - 1 := by
+        rw [Nat.add_sub_assoc]; linarith
+      rw [assoc]
+      rw [<- two_mul, <- mul_comm (2 ^ n') (2), <- pow_succ]
+
 end ch2_10
 
 section ch2_11 -- 2.11, p25
