@@ -91,13 +91,13 @@ def type1_list := (type1.A :: type1.B :: type1.C :: [])
 -- exercises 2.6-2.7 use this binary tree
 inductive tree (X: Type) where
 | tip
-| node (left: tree X) (node_val: X) (right: tree X)
+| node (left : tree X) (node_val : X) (right : tree X)
 
 def mirror: tree X -> tree X
   | tree.tip => tree.tip -- think of this as a null node
   | tree.node l val r => tree.node (mirror r) val (mirror l)
 
-theorem mirror_involutive: ∀ (t: tree X), mirror (mirror t) = t := by
+theorem mirror_involutive: ∀ (t : tree X), mirror (mirror t) = t := by
   intros t
   induction t
   case tip => rfl
@@ -105,5 +105,11 @@ theorem mirror_involutive: ∀ (t: tree X), mirror (mirror t) = t := by
     simp [mirror]
     rw [lih, rih]
     simp -- basically `apply And.intro; rfl; rfl`
+
+-- exercise 2.2
+def add (n m : Nat) : Nat :=
+  match n with
+  | 0 => m
+  | Nat.succ n' => Nat.succ (add n' m)
 
 end cslib
