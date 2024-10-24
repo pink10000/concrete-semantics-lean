@@ -116,34 +116,24 @@ section ch2_6 -- 2.6, p19
       | (tree.tip, _)         => val :: contents r
       | (_, tree.tip)         => val :: contents l
       | (_, _)                => val :: (contents l ++ contents r)
-    /-
+  /-
+     2
+    / \
+  1   3
+  -/
+  def exampleTree : tree Nat :=
+    tree.node
+      (tree.node tree.tip 1 tree.tip)
       2
-      / \
-    1   3
-    -/
-   def exampleTree : tree Nat :=
-     tree.node
-       (tree.node tree.tip 1 tree.tip)
-       2
-       (tree.node tree.tip 3 tree.tip)
-   #eval contents exampleTree -- [1, 2, 3]
+      (tree.node tree.tip 3 tree.tip)
+  #eval contents exampleTree -- [1, 2, 3]
 
-   /-
-         4
-       /   \
-     2     6
-     / \   / \
-   1  3  5  7
-   -/
-   def lvl2tree : tree Nat :=
-     tree.node
-       (tree.node (tree.node tree.tip 1 tree.tip) 2 (tree.node tree.tip 3 tree.tip))
-       
-        4
-      /   \
-     2     6
-    / \   / \
-   1  3  5  7
+  /-
+       4
+     /   \
+    2     6
+   / \   / \
+  1  3  5  7
   -/
   def lvl2tree : tree Nat :=
     tree.node
@@ -153,7 +143,7 @@ section ch2_6 -- 2.6, p19
 
   #eval contents lvl2tree -- [1, 2, 3, 4, 5, 6, 7]
 
-  def sum_tree (t : tree Nat) : Nat := sum (contents t) -- defined this way because it's how it's defined...?
+  def sum_tree (t : tree Nat) : Nat := sum (contents t)
   theorem sum_tree_is_sum_list : ∀ t: tree Nat, sum_tree t = sum (contents t) := by intro t; rfl
 end ch2_6
 
