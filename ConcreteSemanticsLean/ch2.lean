@@ -104,6 +104,14 @@ section ch2_4 -- 2.4, p15
 end ch2_4
 
 section ch2_5 -- 2.5, p15
+def sum_upto : Nat -> Nat
+  | 0 => 0
+  | Nat.succ n => Nat.succ (sum_upto n) + n
+
+#eval sum_upto 4 = (4 * 5)/2
+#eval sum_upto 10 = (10 * 11)/2
+
+
 end ch2_5
 
 section ch2_6 -- 2.6, p19
