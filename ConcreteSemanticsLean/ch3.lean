@@ -105,11 +105,22 @@ section ch3_prelim
 
   /- Ch3.2 Boolean Expressions -/
 
+  section ch3_1 -- p31
+    def optimal (a : aexp) : Bool :=
+      match a with
+      | APlus x y =>
+        match x, y with
+        | ANum _, ANum _  => false
+        | exp1, exp2   =>
+          match optimal exp1, optimal exp2 with
+          | false, _ => false
+          | _, false => false
+          | true, true => true
+      | ANum _ => true
+      | AString _ => true
+  end ch3_1
+
 end ch3_prelim
-
-section ch3_1 -- p31
-
-end ch3_1
 
 section ch3_2 -- p31
 end ch3_2
