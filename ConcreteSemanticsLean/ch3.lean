@@ -45,18 +45,28 @@ section ch3_prelim
     | ANum z      => ANum z
     | AString z   => AString z
     | APlus x y =>
-      match x, y with
+      match asimp_const x, asimp_const y with
       | ANum x, ANum y => ANum (x + y)
       | x, y           => APlus x y
 
   #eval asimp_const (APlus (ANum 2) (ANum 3))
   #eval asimp_const (APlus (ANum 2) (asimp_const (APlus (ANum 1) (ANum 8))))
-  #eval asimp_const (APlus (ANum 2) (asimp_const (APlus (ANum 1) (APlus (ANum 1) (ANum 8))))) -- should fold to 12, but evaluates to aexp.APlus (aexp.ANum 2) (aexp.APlus (aexp.ANum 1) (aexp.APlus (aexp.ANum 1) (aexp.ANum 8)))
+  #eval asimp_const (APlus (ANum 2) (asimp_const (APlus (ANum 1) (APlus (ANum 1) (ANum 8)))))
 
   theorem asimp_const_is_aval : ∀ (a : aexp) (st : state), (aval (asimp_const a) st) = (aval a st) := by
     intro a st
-    rcases a <;> simp [aval, asimp_const]
-    case APlus x y => rcases x <;> rcases y <;> simp [aval, asimp_const]
+    induction a
+    case ANum => simp
+    case AString => simp
+    case APlus x y ihx ihy =>
+      simp [asimp_const]
+      split
+      · case h_1 _ _ x' y' numx' numy' => -- ANum x, ANum y case
+        simp
+        simp [numx'] at ihx;
+        simp [numy'] at ihy;
+        rw [ihx, ihy]
+      · case h_2 _ _ _ => simp [asimp_const, ihx, ihy] -- Otherwise
 
   def aexp_plus (a b : aexp) : aexp :=
     match a, b with
@@ -98,6 +108,7 @@ section ch3_prelim
 end ch3_prelim
 
 section ch3_1 -- p31
+
 end ch3_1
 
 section ch3_2 -- p31
