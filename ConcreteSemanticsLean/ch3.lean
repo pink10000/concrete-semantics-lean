@@ -56,12 +56,12 @@ section ch3_prelim
   theorem asimp_const_is_aval : ∀ (a : aexp) (st : state), (aval (asimp_const a) st) = (aval a st) := by
     intro a st
     induction a
-    case ANum => simp
-    case AString => simp
+    case ANum     => simp
+    case AString  => simp
     case APlus x y ihx ihy =>
       simp [asimp_const]
       split
-      · case h_1 _ _ x' y' numx' numy' => -- ANum x, ANum y case
+      · case h_1 x' y' numx' numy' => -- ANum x, ANum y case
         simp
         simp [numx'] at ihx;
         simp [numy'] at ihy;
