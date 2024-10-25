@@ -91,15 +91,24 @@ section ch3_prelim
 
   theorem APlus_0 : aval (APlus (ANum 0) a) st = aval a st := by simp
 
-  -- might be worth trying to rewrite some of the def or removing entirely. idk how to solve!
-  theorem asimp_is_asimp_const : aval (asimp a) = aval (asimp_const a) := by
-    rcases a <;> simp [asimp, asimp_const, aexp_plus]
-    case APlus a b => sorry
-
   theorem asimp_is_aval : aval (asimp a) st = aval a st := by
-    rcases a <;> simp [aval, asimp]
-    case APlus x y =>
-      rcases x <;> rcases y <;> simp [aval, aexp_plus, asimp] <;> split <;> sorry
+    induction a <;> simp [asimp]
+    case APlus a b ha hb =>
+      simp [aexp_plus, aval]
+      split
+      case h_1 => simp_all only [aval]
+      case h_2 x heq x_1 =>
+        simp [*] at *; rw [← ha]
+        split
+        case h_1 x heq_1 => norm_num; exact hb
+        case h_2 x x_2 => simp; rw [← hb]; ring
+      case h_3 x heq x_1 x_2 =>
+        simp [*] at *; rw [← hb]
+        split
+        case h_1 x heq_1 => norm_num; exact ha
+        case h_2 x x_1 => simp; rw [← ha]
+      case h_4 => simp [*] at *
+
 
   /- Ch3.2 Boolean Expressions -/
 
