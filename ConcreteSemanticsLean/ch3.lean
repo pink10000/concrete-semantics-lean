@@ -147,3 +147,21 @@ end ch3_5
 
 section ch3_6 -- p32
 end ch3_6
+
+section ch3_7
+end ch3_7
+
+section ch3_8
+end ch3_8
+
+section ch3_9
+end ch3_9
+
+section ch3_10
+end ch3_10
+
+section ch3_11
+end ch3_11
+
+section ch3_12
+end ch3_12
