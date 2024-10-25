@@ -55,9 +55,7 @@ section ch3_prelim
 
   theorem asimp_const_is_aval : ∀ (a : aexp) (st : state), (aval (asimp_const a) st) = (aval a st) := by
     intro a st
-    induction a
-    case ANum     => simp
-    case AString  => simp
+    induction a <;> simp
     case APlus x y ihx ihy =>
       simp [asimp_const]
       split
@@ -118,6 +116,13 @@ section ch3_prelim
           | true, true => true
       | ANum _ => true
       | AString _ => true
+
+    theorem asimp_const_is_optimal : optimal (asimp_const a) := by
+      induction a <;> simp [optimal, asimp_const]
+      case APlus =>
+        split
+        · case h_1 => simp [optimal] -- Adding two ANums
+        · case h_2 left right ihleft ihright _ _ _ => simp [optimal, ihleft, ihright] -- Adding two other things
   end ch3_1
 
 end ch3_prelim
