@@ -111,9 +111,8 @@ section ch3_prelim
         | ANum _, ANum _  => false
         | exp1, exp2   =>
           match optimal exp1, optimal exp2 with
-          | false, _ => false
-          | _, false => false
           | true, true => true
+          | _, _ => false
       | ANum _ => true
       | AString _ => true
 
