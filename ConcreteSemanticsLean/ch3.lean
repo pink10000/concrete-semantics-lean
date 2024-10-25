@@ -89,7 +89,7 @@ section ch3_prelim
     | AString x => AString x
     | APlus a b => aexp_plus (asimp a) (asimp b)
 
-  theorem APlus_0 : aval (APlus (ANum 0) a) st = aval a st := by rcases a <;> simp
+  theorem APlus_0 : aval (APlus (ANum 0) a) st = aval a st := by simp
 
   -- might be worth trying to rewrite some of the def or removing entirely. idk how to solve!
   theorem asimp_is_asimp_const : aval (asimp a) = aval (asimp_const a) := by
