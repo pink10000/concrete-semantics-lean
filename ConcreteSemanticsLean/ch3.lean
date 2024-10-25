@@ -51,6 +51,7 @@ section ch3_prelim
 
   #eval asimp_const (APlus (ANum 2) (ANum 3))
   #eval asimp_const (APlus (ANum 2) (asimp_const (APlus (ANum 1) (ANum 8))))
+  #eval asimp_const (APlus (ANum 2) (asimp_const (APlus (ANum 1) (APlus (ANum 1) (ANum 8))))) -- should fold to 12, but evaluates to aexp.APlus (aexp.ANum 2) (aexp.APlus (aexp.ANum 1) (aexp.APlus (aexp.ANum 1) (aexp.ANum 8)))
 
   theorem asimp_const_is_aval : ∀ (a : aexp) (st : state), (aval (asimp_const a) st) = (aval a st) := by
     intro a st
