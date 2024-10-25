@@ -111,6 +111,24 @@ def sum_upto : Nat -> Nat
 #eval sum_upto 4 = (4 * 5)/2
 #eval sum_upto 10 = (10 * 11)/2
 
+theorem sum_upto_eq : ∀ (n : Nat), sum_upto n = n * (n+1) / 2 := by
+  intro n
+  induction n
+  case zero => rfl
+  case succ n ih =>
+    simp [sum_upto]; rw [ih];
+    rw [mul_add, add_assoc, add_comm (n + 1) 1]
+    simp [div_eq_mul_inv]; ring
+    calc 1 + n + (n + n ^ 2) / 2
+      _ = 2 * (1 + n) / 2 + (n + n^2) / 2 := by
+        rw [add_right_cancel_iff]; ring_nf; simp; linarith
+      _ = (2 * (1 + n) + n + n^2) / 2 := by
+        sorry
+
+
+
+
+
 
 end ch2_5
 
