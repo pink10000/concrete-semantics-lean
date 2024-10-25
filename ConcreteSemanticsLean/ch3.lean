@@ -6,7 +6,7 @@ import Mathlib.Tactic.Basic
 
 section ch3_prelim
   /- Ch3.1.1, Syntax -/
-  -- Arithmeitc EXPression
+  -- Arithmetic EXPression
   inductive aexp : Type
   | ANum    : Int → aexp
   | AString : String → aexp
