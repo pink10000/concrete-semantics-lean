@@ -66,7 +66,7 @@ section ch3_prelim
         simp [numx'] at ihx;
         simp [numy'] at ihy;
         rw [ihx, ihy]
-      · case h_2 _ _ _ => simp [asimp_const, ihx, ihy] -- Otherwise
+      · case h_2 => simp [asimp_const, ihx, ihy] -- Otherwise
 
   def aexp_plus (a b : aexp) : aexp :=
     match a, b with
