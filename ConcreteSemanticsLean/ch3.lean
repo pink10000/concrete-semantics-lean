@@ -103,28 +103,29 @@ section ch3_prelim
 
   /- Ch3.2 Boolean Expressions -/
 
-  section ch3_1 -- p31
-    def optimal (a : aexp) : Bool :=
-      match a with
-      | APlus x y =>
-        match x, y with
-        | ANum _, ANum _  => false
-        | exp1, exp2   =>
-          match optimal exp1, optimal exp2 with
-          | true, true => true
-          | _, _ => false
-      | ANum _ => true
-      | AString _ => true
-
-    theorem asimp_const_is_optimal : optimal (asimp_const a) := by
-      induction a <;> simp [optimal, asimp_const]
-      case APlus =>
-        split
-        · case h_1 => simp [optimal] -- Adding two ANums
-        · case h_2 left right ihleft ihright _ _ _ => simp [optimal, ihleft, ihright] -- Adding two other things
-  end ch3_1
-
 end ch3_prelim
+
+section ch3_1 -- p31
+  open aexp
+  def optimal (a : aexp) : Bool :=
+    match a with
+    | APlus x y =>
+      match x, y with
+      | ANum _, ANum _  => false
+      | exp1, exp2   =>
+        match optimal exp1, optimal exp2 with
+        | true, true => true
+        | _, _ => false
+    | ANum _ => true
+    | AString _ => true
+
+  theorem asimp_const_is_optimal : optimal (asimp_const a) := by
+    induction a <;> simp [optimal, asimp_const]
+    case APlus =>
+      split
+      · case h_1 => simp [optimal] -- Adding two ANums
+      · case h_2 left right ihleft ihright _ _ _ => simp [optimal, ihleft, ihright] -- Adding two other things
+end ch3_1
 
 section ch3_2 -- p31
 end ch3_2
