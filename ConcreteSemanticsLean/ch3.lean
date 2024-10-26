@@ -168,6 +168,46 @@ section ch3_5 -- p32
 end ch3_5
 
 section ch3_6 -- p32
+
+  inductive lexp :=
+  | Nl    : Int → lexp
+  | Vl    : String → lexp
+  | Plusl : lexp → lexp → lexp
+  | LET   : String → lexp → lexp → lexp
+  deriving Repr
+  open lexp
+
+  -- value of `LET x e₁ e₂` is bind `x` to `e₁`
+  -- on `aval` of `e₂`, when `e₁` is found,
+  -- replace with `x`
+  -- essentially, replace all `x` with `e₁` in `e₂`
+  def lval (l : lexp) (st : state) : Int :=
+    match l with
+    | Nl n      => n
+    | Vl x      => st x
+    | Plusl x y => lval x st + lval y st
+    | LET x e₁ e₂ => lval e₂ (fun y => if y = x then lval e₁ st else st y)
+
+  #eval lval (LET "x" (Nl 3) (Plusl (Vl "x") (Nl 5))) (fun _ => 0)
+  #eval lval (LET "x" (Nl 3) (LET "y" (Nl 5) (Plusl (Vl "x") (Vl "y")))) (fun _ => 0)
+  #eval lval (LET "y" (Nl 3) (LET "z" (Nl 5) (Plusl (Vl "x") (Vl "y")))) (fun _ => 0)
+
+  -- stands for lexp_inline
+  def linline (l : lexp) : aexp :=
+    match l with
+    | Nl n      => ANum n
+    | Vl x      => AString x
+    | Plusl x y => APlus (linline x) (linline y)
+    | LET x e₁ e₂ => subst x (linline e₁) (linline e₂)
+
+  lemma lval_is_aval_linline : ∀ (l : lexp) (st : state), lval l st = aval (linline l) st := by
+    intro l st
+    induction l generalizing st <;> simp_all [lval, aval, linline]
+    case LET str a₁ a₂ lva₁ lva₂  =>
+      rw [subst_eval_is_eval_subst]
+  -- technically you can make it one line since you can move the rw into the simp_all
+  -- but also it kinda ruins the fun, and doesn't really show why it works
+
 end ch3_6
 
 section ch3_7
