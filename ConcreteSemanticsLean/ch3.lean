@@ -33,12 +33,6 @@ section ch3_prelim
 
   #eval aval (APlus (ANum 3) (AString "x")) (fun _ => 0)
 
-  -- def upst (a b : Int) (u : st) :=
-  --   match a, b with
-  --   | 0, 0
-
-  -- notation "f(" a " := " b ")" => sorry
-
   /- Ch3.1.3, Constant Folding -/
   def asimp_const (a : aexp) : aexp :=
     match a with
@@ -113,9 +107,9 @@ section ch3_prelim
   /- Ch3.2 Boolean Expressions -/
 
 end ch3_prelim
+open aexp
 
 section ch3_1 -- p31
-  open aexp
   def optimal (a : aexp) : Bool :=
     match a with
     | APlus x y =>
@@ -140,7 +134,35 @@ section ch3_2 -- p31
 end ch3_2
 
 section ch3_3 -- p31
-end ch3_3
+
+  -- replace all `x` with `a` in `e`
+  def subst (str : String) (a e : aexp) : aexp :=
+    match e with
+    | AString x  => if x = str then a else e
+    | APlus l r  => APlus (subst str a l) (subst str a r)
+    | ANum _     => e
+
+  -- def subop [DecidableEq aexp] (f : aexp → aexp) (a e : aexp) :=
+  --   fun x => if x = a then e else f a
+
+  -- notation f " ? " a " : " e => subop f a e
+
+  #eval subst "x" (ANum 3) (APlus (AString "x") (AString "y"))
+  -- #eval "x" ? (ANum 3) : (APlus (AString "x") (AString "y"))
+
+  lemma subst_eval_is_eval_subst : ∀ (a e : aexp) (st : state) (str : String),
+      aval (subst str a e) st = aval e (fun x => if x = str then aval a st else st x) := by
+    intros a e st str
+    induction e <;> simp [subst, aval]
+    . split <;> rfl
+    . case APlus e1 e2 ih1 ih2 => rw [ih1, ih2]
+
+  lemma eq_aval_is_eq_subst_aval : ∀ (a₁ a₂ e : aexp) (st : state) (x : String),
+    aval a₁ st = aval a₂ st → aval (subst x a₁ e) st = aval (subst x a₂ e) st := by
+    intro a₁ a₂ e st x eq_aval
+    induction e  <;> simp_all [subst, aval]; split <;> simp_all
+
+  end ch3_3
 
 section ch3_5 -- p32
 end ch3_5
