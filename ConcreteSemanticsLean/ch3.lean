@@ -111,6 +111,47 @@ section ch3_prelim
 
 
   /- Ch3.2 Boolean Expressions -/
+  inductive bexp : Type
+  | Bc   : Bool → bexp
+  | BNot  : bexp → bexp
+  | BAnd  : bexp → bexp → bexp
+  | BLess : aexp → aexp → bexp
+  deriving Repr
+  open bexp
+
+  def bval (b : bexp) (st : state) : Bool :=
+    match b with
+    | Bc v        => v
+    | BNot b      => ¬(bval b st)
+    | BAnd b₁ b₂  => (bval b₁ st ∧ bval b₂ st)
+    | BLess a₁ a₂ => (aval a₁ st < aval a₂ st)
+
+  /- Ch3.2.1 Constant Folding -/
+  def not (b : bexp) : bexp :=
+    match b with
+    | Bc true  => Bc false
+    | Bc false => Bc true
+    | _        => BNot b
+
+  def and (b₁ b₂ : bexp) : bexp :=
+    match b₁, b₂ with
+    | Bc true, b₂ => b₂
+    | b₁, Bc true => b₁
+    | Bc false, _ => Bc false
+    | _, Bc false => Bc false
+    | _, _        => BAnd b₁ b₂
+
+  def less (a₁ a₂ : aexp) : bexp :=
+    match a₁, a₂ with
+    | ANum n₁, ANum n₂ => Bc (n₁ < n₂)
+    | _, _             => BLess a₁ a₂
+
+  def bsimp (b : bexp) : bexp :=
+    match b with
+    | Bc v => Bc v
+    | BNot b => not (bsimp b)
+    | BAnd b₁ b₂ => and (bsimp b₁) (bsimp b₂)
+    | BLess a₁ a₂ => less (asimp a₁) (asimp a₂)
 
 end ch3_prelim
 
