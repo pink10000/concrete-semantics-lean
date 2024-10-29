@@ -258,6 +258,54 @@ section ch3_8
 end ch3_8
 
 section ch3_9
+  inductive pbexp : Type :=
+  | VAR : String → pbexp
+  | NEG : pbexp → pbexp
+  | AND : pbexp → pbexp → pbexp
+  | OR  : pbexp → pbexp → pbexp
+  deriving Repr
+  open pbexp
+
+  def pbval (p : pbexp) (sb : String → Bool) : Bool :=
+    match p with
+    | VAR x     => sb x
+    | NEG b     => ¬(pbval b sb)
+    | AND b₁ b₂ => (pbval b₁ sb ∧ pbval b₂ sb)
+    | OR b₁ b₂  => (pbval b₁ sb ∨ pbval b₂ sb)
+
+  /-
+  Check if pbexp is an Negation Normal Form (nnf)
+  where there are only NEG on VAR
+  -/
+  def is_nnf (p : pbexp) : Bool :=
+    sorry
+
+  /-
+  Convert pbexp into nnf as much as possible
+  -/
+  def nnf (p : pbexp) : pbexp :=
+    sorry
+
+  lemma nnf_preserved : pbval (nnf b) sb = pbval b sb := by sorry
+
+  def b : pbexp := VAR "x"
+  #check is_nnf (nnf b)
+
+  /-
+  Check if pbexp is in Disjunctive Normal Form (dnf)
+  if it is an nnf and no OR occurs below an AND
+  -/
+  def is_dnf (p : pbexp) : Bool := by sorry
+
+  /-
+  Convert from nnf to dnf
+  -/
+  def dnf_of_nnf (p : pbexp) : pbexp := by sorry
+
+  lemma dnf_of_nnf_preserved : pbval (dnf_of_nnf b) sb = pbval b sb := by sorry
+
+  lemma dnf_of_nnf_conversion : is_nnf b → is_dnf (dnf_of_nnf b) := by sorry
+
 end ch3_9
 
 section ch3_10
