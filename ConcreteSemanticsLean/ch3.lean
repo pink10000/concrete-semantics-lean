@@ -278,18 +278,37 @@ section ch3_9
   where there are only NEG on VAR
   -/
   def is_nnf (p : pbexp) : Bool :=
-    sorry
+    match p with
+    | VAR _       => true                   -- `VAR` is nnf
+    | NEG (VAR _) => true                   -- `NEG` `VAR` is nnf
+    | NEG _       => false                  -- `NEG` anything else is not
+    | AND b₁ b₂   => is_nnf b₁ ∧ is_nnf b₂  -- `AND` is nnf if both are nnf
+    | OR b₁ b₂    => is_nnf b₁ ∧ is_nnf b₂  -- `OR` is nnf if both are nnf
+
+  #eval is_nnf (AND (VAR "x") (NEG (VAR "y")))
+  #eval is_nnf (AND (VAR "x") (NEG (NEG (VAR "y"))))
 
   /-
   Convert pbexp into nnf as much as possible
   -/
   def nnf (p : pbexp) : pbexp :=
-    sorry
+    match p with
+    | VAR x           => VAR x
+    | NEG (VAR x)     => NEG (VAR x)
+    | NEG (NEG b)     => nnf b
+    | NEG (AND b₁ b₂) => OR (nnf (NEG b₁)) (nnf (NEG b₂))
+    | NEG (OR b₁ b₂)  => AND (nnf (NEG b₁)) (nnf (NEG b₂))
+    | AND b₁ b₂       => AND (nnf b₁) (nnf b₂)
+    | OR b₁ b₂        => OR (nnf b₁) (nnf b₂)
+
+  #eval nnf (AND (VAR "x") (NEG (VAR "y")))
+  #eval nnf (AND (VAR "x") (NEG (NEG (VAR "y"))))
+  #eval nnf (AND (VAR "x") (NEG (OR (VAR "y") (VAR "z"))))
 
   lemma nnf_preserved : pbval (nnf b) sb = pbval b sb := by sorry
 
   def b : pbexp := VAR "x"
-  #check is_nnf (nnf b)
+  #eval is_nnf (nnf b)
 
   /-
   Check if pbexp is in Disjunctive Normal Form (dnf)
