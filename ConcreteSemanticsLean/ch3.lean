@@ -34,12 +34,6 @@ section ch3_prelim
   #eval aval (APlus (AString "hello") (AString "world")) (fun x => x.length)
   #eval aval (APlus (ANum 3) (AString "x")) (fun _ => 0)
 
-  -- def upst (a b : Int) (u : st) :=
-  --   match a, b with
-  --   | 0, 0
-
-  -- notation "f(" a " := " b ")" => sorry
-
   /- Ch3.1.3, Constant Folding -/
   def asimp_const (a : aexp) : aexp :=
     match a with
@@ -160,10 +154,50 @@ section ch3_prelim
     | BAnd b₁ b₂ => and (bsimp b₁) (bsimp b₂)
     | BLess a₁ a₂ => less (asimp a₁) (asimp a₂)
 
+  /- Ch3.3 Stack Machine and Compilation -/
+  inductive instr : Type :=
+  | LOADI : Int → instr
+  | LOAD  : String → instr
+  | ADD   : instr
+  deriving Repr
+  open instr
+
+  def stack : Type := mylist Int
+
+  /-
+  Executes one instruction on the stack.
+  -/
+  @[simp] def exec1 (ins : instr) (st : state) (stk : stack) : stack :=
+    match ins, st, stk with
+    | LOADI n,  _, stk            => n :: stk
+    | LOAD x , st, stk            => (st x) :: stk
+    | ADD    ,  _, i :: j :: stk' => (i + j) :: stk'
+    | ADD    ,  _, _              => stk -- needed to cover all cases (although this shouldnt happen)
+
+  /-
+  Executes the entire stack.
+  -/
+  @[simp] def exec (insl : mylist instr) (st : state) (stk : stack) : stack :=
+    match insl, st, stk with
+    | []         ,  _, stk => stk
+    | ins :: insl, st, stk => exec insl st (exec1 ins st stk)
+
+  @[simp] def comp (a : aexp) : mylist instr :=
+    match a with
+    | ANum n      => LOADI n :: []
+    | AString s   => LOAD s :: []
+    | APlus e₁ e₂ => comp e₁ ++ comp e₂ ++ ADD :: []
+
+
+  lemma exec_append : exec (l₁ ++ l₂) st stk = exec l₂ st (exec l₁ st stk) := by
+    induction l₁ generalizing l₂ st stk <;> simp_all [empty_concat]
+
+  lemma exec_comp_equiv_aval : exec (comp a) st stk = (aval a st) :: stk := by
+    induction a generalizing stk <;> simp_all [exec_append, add_comm]
 end ch3_prelim
+open aexp
 
 section ch3_1 -- p31
-  open aexp
   def optimal (a : aexp) : Bool :=
     match a with
     | APlus x y =>
@@ -244,7 +278,35 @@ theorem full_asimp_correct : aval (full_asimp a) st = aval a st := by
 end ch3_2
 
 section ch3_3 -- p31
-end ch3_3
+
+  -- replace all `x` with `a` in `e`
+  def subst (str : String) (a e : aexp) : aexp :=
+    match e with
+    | AString x  => if x = str then a else e
+    | APlus l r  => APlus (subst str a l) (subst str a r)
+    | ANum _     => e
+
+  -- def subop [DecidableEq aexp] (f : aexp → aexp) (a e : aexp) :=
+  --   fun x => if x = a then e else f a
+
+  -- notation f " ? " a " : " e => subop f a e
+
+  #eval subst "x" (ANum 3) (APlus (AString "x") (AString "y"))
+  -- #eval "x" ? (ANum 3) : (APlus (AString "x") (AString "y"))
+
+  lemma subst_eval_is_eval_subst : ∀ (a e : aexp) (st : state) (str : String),
+      aval (subst str a e) st = aval e (fun x => if x = str then aval a st else st x) := by
+    intros a e st str
+    induction e <;> simp [subst, aval]
+    . split <;> rfl
+    . case APlus e1 e2 ih1 ih2 => rw [ih1, ih2]
+
+  lemma eq_aval_is_eq_subst_aval : ∀ (a₁ a₂ e : aexp) (st : state) (x : String),
+    aval a₁ st = aval a₂ st → aval (subst x a₁ e) st = aval (subst x a₂ e) st := by
+    intro a₁ a₂ e st x eq_aval
+    induction e  <;> simp_all [subst, aval]; split <;> simp_all
+
+  end ch3_3
 
 -- ch_4 in diff file
 
@@ -254,6 +316,46 @@ section ch3_5 -- p32
 end ch3_5
 
 section ch3_6 -- p32
+
+  inductive lexp :=
+  | Nl    : Int → lexp
+  | Vl    : String → lexp
+  | Plusl : lexp → lexp → lexp
+  | LET   : String → lexp → lexp → lexp
+  deriving Repr
+  open lexp
+
+  -- value of `LET x e₁ e₂` is bind `x` to `e₁`
+  -- on `aval` of `e₂`, when `e₁` is found,
+  -- replace with `x`
+  -- essentially, replace all `x` with `e₁` in `e₂`
+  def lval (l : lexp) (st : state) : Int :=
+    match l with
+    | Nl n      => n
+    | Vl x      => st x
+    | Plusl x y => lval x st + lval y st
+    | LET x e₁ e₂ => lval e₂ (fun y => if y = x then lval e₁ st else st y)
+
+  #eval lval (LET "x" (Nl 3) (Plusl (Vl "x") (Nl 5))) (fun _ => 0)
+  #eval lval (LET "x" (Nl 3) (LET "y" (Nl 5) (Plusl (Vl "x") (Vl "y")))) (fun _ => 0)
+  #eval lval (LET "y" (Nl 3) (LET "z" (Nl 5) (Plusl (Vl "x") (Vl "y")))) (fun _ => 0)
+
+  -- stands for lexp_inline
+  def linline (l : lexp) : aexp :=
+    match l with
+    | Nl n      => ANum n
+    | Vl x      => AString x
+    | Plusl x y => APlus (linline x) (linline y)
+    | LET x e₁ e₂ => subst x (linline e₁) (linline e₂)
+
+  lemma lval_is_aval_linline : ∀ (l : lexp) (st : state), lval l st = aval (linline l) st := by
+    intro l st
+    induction l generalizing st <;> simp_all [lval, aval, linline]
+    case LET str a₁ a₂ lva₁ lva₂  =>
+      rw [subst_eval_is_eval_subst]
+  -- technically you can make it one line since you can move the rw into the simp_all
+  -- but also it kinda ruins the fun, and doesn't really show why it works
+
 end ch3_6
 
 section ch3_7
@@ -265,6 +367,133 @@ section ch3_8
 end ch3_8
 
 section ch3_9
+  inductive pbexp : Type :=
+  | VAR : String → pbexp
+  | NEG : pbexp → pbexp
+  | AND : pbexp → pbexp → pbexp
+  | OR  : pbexp → pbexp → pbexp
+  deriving Repr
+  open pbexp
+
+  @[simp] def pbval (p : pbexp) (sb : String → Bool) : Bool :=
+    match p with
+    | VAR x     => sb x
+    | NEG b     => !(pbval b sb)
+    | AND b₁ b₂ => (pbval b₁ sb ∧ pbval b₂ sb)
+    | OR b₁ b₂  => (pbval b₁ sb ∨ pbval b₂ sb)
+
+  /-
+  Check if pbexp is an Negation Normal Form (nnf)
+  where there are only NEG on VAR
+  -/
+  @[simp] def is_nnf (p : pbexp) : Bool :=
+    match p with
+    | VAR _       => true                   -- `VAR` is nnf
+    | NEG (VAR _) => true                   -- `NEG` `VAR` is nnf
+    | NEG _       => false                  -- `NEG` anything else is not
+    | AND b₁ b₂   => is_nnf b₁ ∧ is_nnf b₂  -- `AND` is nnf if both are nnf
+    | OR b₁ b₂    => is_nnf b₁ ∧ is_nnf b₂  -- `OR` is nnf if both are nnf
+
+  #eval is_nnf (AND (VAR "x") (NEG (VAR "y")))
+  #eval is_nnf (AND (VAR "x") (NEG (NEG (VAR "y"))))
+
+  /-
+  Convert pbexp into nnf as much as possible
+  -/
+  @[simp] def nnf (p : pbexp) : pbexp :=
+    match p with
+    | VAR x           => VAR x
+    | NEG (VAR x)     => NEG (VAR x)
+    | NEG (NEG b)     => nnf b
+    | NEG (AND b₁ b₂) => OR (nnf (NEG b₁)) (nnf (NEG b₂))
+    | NEG (OR b₁ b₂)  => AND (nnf (NEG b₁)) (nnf (NEG b₂))
+    | AND b₁ b₂       => AND (nnf b₁) (nnf b₂)
+    | OR b₁ b₂        => OR (nnf b₁) (nnf b₂)
+
+  #eval nnf (AND (VAR "x") (NEG (VAR "y")))
+  #eval nnf (AND (VAR "x") (NEG (NEG (VAR "y"))))
+  #eval nnf (AND (VAR "x") (NEG (OR (VAR "y") (VAR "z"))))
+  #eval nnf (AND (VAR "x") (NEG (AND (VAR "y") (VAR "z"))))
+
+  @[simp] lemma pbval_neg : ∀ b, pbval (NEG b) sb = !(pbval b sb) := by simp_all
+
+  /-
+  THIS IS WRONG, `¬` is PROPOSITIONAL NEGATION, NOT BOOLEAN NEGATION
+  -/
+  @[simp] lemma pbval_neg_nnf' (p : pbexp) (sb : String → Bool) : pbval (nnf (NEG p)) sb = ¬(pbval (nnf p) sb) := by
+    induction p <;> simp_all; case AND b1 b2 _ _ =>
+    constructor
+    . rintro (h1 | h2) <;> simp_all
+    . intro h; by_cases (pbval (nnf b1) sb) <;> simp_all
+
+  @[simp] lemma pbval_neg_nnf (p : pbexp) : pbval (nnf (NEG p)) sb = !pbval (nnf p) sb := by
+    induction p <;> simp_all
+
+  @[simp] lemma nnf_preserved : pbval (nnf b) sb = pbval b sb := by
+    induction b <;> simp_all [nnf, pbval, pbval_neg, pbval_neg_nnf]
+
+  def b : pbexp := VAR "x"
+  #eval is_nnf (nnf b)
+
+  /-
+  Helper function to chec if `OR` appears after `AND`.
+  -/
+  @[simp] def conj_of_lit (p : pbexp) : Bool :=
+    match p with
+    | VAR _     => true
+    | OR _ _    => false
+    | NEG q     => conj_of_lit q
+    | AND p₁ p₂ => conj_of_lit p₁ ∧ conj_of_lit p₂
+
+  /-
+  Check if pbexp is in Disjunctive Normal Form (dnf)
+  if it is an nnf and no OR occurs below an AND
+  -/
+  @[simp] def is_dnf (p : pbexp) : Bool :=
+    match is_nnf p with
+    | false => false
+    | true  =>
+      match p with
+      | VAR _     => true
+      | NEG q     => is_dnf q
+      | OR q₁ q₂  => is_dnf q₁ ∧ is_dnf q₂
+      | AND q₁ q₂ => conj_of_lit q₁ ∧ conj_of_lit q₂
+
+  #eval is_dnf (AND (VAR "x") (NEG (VAR "y")))
+  #eval is_dnf (AND (VAR "x") (NEG (NEG (VAR "y"))))
+    #eval is_nnf (AND (VAR "x") (NEG (NEG (VAR "y"))))
+
+  /-
+  Convert from nnf to dnf
+  -/
+  @[simp] def dnf_of_nnf (p : pbexp) : pbexp :=
+    match p with
+    | VAR x     => VAR x
+    | NEG q     => NEG (dnf_of_nnf q)
+    | OR q₁ q₂  => OR (dnf_of_nnf q₁) (dnf_of_nnf q₂)
+    | AND q₁ q₂ =>
+      match dnf_of_nnf q₁, dnf_of_nnf q₂ with
+      | OR q₁₁ q₁₂, q₂         => OR (AND q₁₁ q₂) (AND q₁₂ q₂)
+      | q₁        , OR q₂₁ q₂₂ => OR (AND q₁ q₂₁) (AND q₁ q₂₂)
+      | q₁        , q₂         => AND q₁ q₂
+
+  #eval dnf_of_nnf (AND (VAR "x") (NEG (VAR "y")))
+  #eval dnf_of_nnf (AND (VAR "x") (NEG (NEG (VAR "y"))))
+  #eval dnf_of_nnf (AND (VAR "x") (OR (VAR "y") (VAR "z")))
+
+  @[simp] lemma dnf_of_nnf_preserved : pbval (dnf_of_nnf b) sb = pbval b sb := by
+    induction b <;> simp_all [dnf_of_nnf, pbval]
+    case AND b1 b2 _ _ =>
+      split <;> simp_all
+      case h_1 =>
+        by_cases (pbval (dnf_of_nnf b1) sb) <;> simp_all
+        by_cases (pbval (dnf_of_nnf b2) sb) <;> simp_all
+      case h_2 =>
+        by_cases (pbval (dnf_of_nnf b1) sb) <;> simp_all
+
+  lemma dnf_of_nnf_conversion : is_nnf b → is_dnf (dnf_of_nnf b) := by
+    intro h; contrapose! h; induction b <;> simp_all
+
 end ch3_9
 
 section ch3_10
