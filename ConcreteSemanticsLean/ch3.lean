@@ -206,18 +206,18 @@ section ch3_7 -- p33
     BNot (BAnd (BNot (BLess a b)) (BNot (Eq' a b)))
 
   theorem bval_eq_is_aval_equality : bval (Eq' a b) s = (aval a s - aval b s = 0) := by
-    sorry
-    /-
-    induction a generalizing b <;> simp_all
-    case ANum str => sorry
-
-
-
-    sorry
-    case AString => sorry
-    case APlus => sorry
-    -/
-
+    simp
+    generalize aval a s = a_num
+    generalize aval b s = b_num
+    by_cases a_b_eq: a_num = b_num
+    case pos =>
+      · constructor <;> intro h;
+        linarith
+        constructor <;> simp [a_b_eq]
+    case neg =>
+      · constructor <;> intro h
+        linarith
+        constructor <;> linarith
 end ch3_7
 
 section ch3_8
