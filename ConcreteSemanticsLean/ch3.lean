@@ -31,6 +31,7 @@ section ch3_prelim
     | AString str => st str
     | APlus a1 a2 => aval a1 st + aval a2 st
 
+  #eval aval (APlus (AString "hello") (AString "world")) (fun x => x.length)
   #eval aval (APlus (ANum 3) (AString "x")) (fun _ => 0)
 
   -- def upst (a b : Int) (u : st) :=
@@ -79,6 +80,8 @@ section ch3_prelim
       | _ => APlus a (ANum x)
     | a, b           => APlus a b
 
+
+
   -- holy shit im cooking wtf !!!!!!
   theorem aval_plus : aval (aexp_plus a b) st = aval a st + aval b st := by
     rcases a <;> rcases b <;> simp [aval, aexp_plus] <;> split <;> simp [aval] <;> ring
@@ -88,6 +91,10 @@ section ch3_prelim
     | ANum n => ANum n
     | AString x => AString x
     | APlus a b => aexp_plus (asimp a) (asimp b)
+
+  #eval asimp (aexp_plus (AString "x") (AString "y"))
+  #eval asimp (aexp_plus (ANum 2) (aexp_plus (AString "x") (ANum 3)))
+  #eval asimp (aexp_plus (AString "x")  (aexp_plus (ANum 2) (ANum 3)))
 
   theorem APlus_0 : aval (APlus (ANum 0) a) st = aval a st := by simp
 
@@ -177,12 +184,50 @@ section ch3_1 -- p31
       · case h_2 left right ihleft ihright _ _ _ => simp [optimal, ihleft, ihright] -- Adding two other things
 end ch3_1
 
+-- arnav
 section ch3_2 -- p31
+open aexp
+def aexp_plus_full : aexp → aexp → aexp
+    | ANum x, ANum y => ANum (x + y)
+    | APlus x (ANum y), ANum z | ANum z, APlus x (ANum y) =>
+        APlus x (ANum (y + z))
+    | APlus x (ANum y), z | z, APlus x (ANum y) =>
+        APlus (APlus x z) (ANum y)
+    | x, ANum i | ANum i, x =>
+      if i = 0 then x else APlus x (ANum i)
+    | x, y => APlus x y
+
+def full_asimp : aexp → aexp
+  | ANum n => ANum n
+  | AString x => AString x
+  | APlus x y => aexp_plus_full (full_asimp x) (full_asimp y)
+
+
+set_option trace.split.failure true
+
+lemma aval_plus_full : aval (aexp_plus_full a b) st = aval a st + aval b st := by
+  rcases a <;> rcases b <;> simp [aval, aexp_plus_full] <;> split <;> simp_all <;> ring_nf <;> split <;> simp_all; ring
+
+theorem full_asimp_correct : aval (full_asimp a) st = aval a st := by
+  induction a <;> simp_all
+  case APlus =>
+    simp [full_asimp, aexp_plus_full, aval]
+    split
+    case h_1 => simp_all only [aval]
+    sorry
+
+
+
+
 end ch3_2
 
 section ch3_3 -- p31
 end ch3_3
 
+-- ch_4 in diff file
+
+
+-- arnav
 section ch3_5 -- p32
 end ch3_5
 
@@ -192,6 +237,8 @@ end ch3_6
 section ch3_7
 end ch3_7
 
+
+--arnav
 section ch3_8
 end ch3_8
 
@@ -201,6 +248,7 @@ end ch3_9
 section ch3_10
 end ch3_10
 
+--arnav
 section ch3_11
 end ch3_11
 
