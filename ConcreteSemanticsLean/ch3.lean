@@ -213,9 +213,33 @@ theorem full_asimp_correct : aval (full_asimp a) st = aval a st := by
   case APlus =>
     simp [full_asimp, aexp_plus_full, aval]
     split
-    case h_1 => simp_all only [aval]
-    sorry
-
+    case h_1 => simp_all
+    case h_2 =>
+      simp_all
+      linarith
+    case h_3 =>
+      simp_all
+      linarith
+    case h_4 =>
+      simp_all
+      linarith
+    case h_5 =>
+      simp_all
+      linarith
+    case h_6 =>
+      simp_all
+      split
+      case isTrue => simp_all
+      case isFalse => simp_all
+    case h_7 =>
+      simp_all
+      split
+      case isTrue => simp_all
+      case isFalse =>
+        simp_all
+        linarith
+    case h_8 =>
+      simp_all
 
 
 
