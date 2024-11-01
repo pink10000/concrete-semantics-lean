@@ -499,9 +499,52 @@ end ch3_9
 section ch3_10
 end ch3_10
 
---arnav
 section ch3_11
+  def reg := Nat
+  #check reg
+
+  instance : DecidableEq reg := instDecidableEqNat -- copilot moment
+
+  inductive instr' : Type
+  | LDI : Int → reg → instr'
+  | LD  : String → reg → instr'
+  | ADD : reg → reg → instr'
+  -- deriving Repr -- not possible because `reg` is an instance of `Repr`
+  open instr'
+
+  /-
+  CS says the return type is `Int`, but it seems that by the text previous
+  to it, it should be `reg → Int`
+  -/
+  @[simp] def exec1' (ins : instr') (st : state) (h : reg → Int) : reg → Int :=
+    match ins with
+    | LDI n r   => fun r' => (if r' = r' then n else h r)
+    | LD x r    => fun r' => (if r' = r' then st x else h r)
+    | ADD r₁ r₂ => fun r' => (if r' = r₁ then h r₁ + h r₂ else h r')
+  #check exec1' -- type checks out
+
+  @[simp] def exec' (insl : mylist instr') (st : state) (h : reg → Int) : reg → Int :=
+    match insl with
+    | []          => h
+    | ins :: insl => exec' insl st (exec1' ins st h)
+
+  @[simp] def comp' (a : aexp) (r : reg) : mylist instr' :=
+    match a with
+    | ANum n      => LDI n r :: []
+    | AString s   => LD s r :: []
+    | APlus e₁ e₂ =>
+      have r1 := Nat.succ r
+      comp' e₁ r ++ comp' e₂ r1 ++ ADD r r1 :: []
+
+  lemma exec'_correctness : exec' (comp' a r) st h r = aval a st := by
+    induction a generalizing h r <;> simp_all
+    case APlus a₁ a₂ a₁h a₂h => sorry
+    -- i think i need some `exec_apped`?
+
+
 end ch3_11
 
 section ch3_12
+
+
 end ch3_12
