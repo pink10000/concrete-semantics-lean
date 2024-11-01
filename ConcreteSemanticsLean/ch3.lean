@@ -241,8 +241,6 @@ theorem full_asimp_correct : aval (full_asimp a) st = aval a st := by
     case h_8 =>
       simp_all
 
-
-
 end ch3_2
 
 section ch3_3 -- p31
