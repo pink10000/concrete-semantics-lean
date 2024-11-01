@@ -119,7 +119,7 @@ section ch3_prelim
   deriving Repr
   open bexp
 
-  def bval (b : bexp) (st : state) : Bool :=
+  @[simp] def bval (b : bexp) (st : state) : Bool :=
     match b with
     | Bc v        => v
     | BNot b      => ¬(bval b st)
@@ -189,7 +189,35 @@ end ch3_5
 section ch3_6 -- p32
 end ch3_6
 
-section ch3_7
+section ch3_7 -- p33
+  open aexp
+  open bexp
+
+  @[simp] def Eq' (a b: aexp) : bexp :=
+    BAnd (BNot (BLess a b)) (BNot (BLess b a))
+
+  def sam_st := (fun (_ : String) => (0 : ℤ ))
+  #check sam_st
+  #eval bval (Eq' (ANum 4) (ANum 6)) sam_st = (aval (ANum 4) sam_st == aval (ANum 6) sam_st)
+
+
+  #eval Eq' (ANum 1) (ANum 1)
+  def Le' (a b: aexp) : bexp := -- Being less than or equal to requires defining Or, which can be expressed in terms of `not`s and `and`s with De Morgan's i.e. (x + y) = (x'y')' where x and y are expressions in boolean algebra. Our x is "less than" and our y is "equal to"
+    BNot (BAnd (BNot (BLess a b)) (BNot (Eq' a b)))
+
+  theorem bval_eq_is_aval_equality : bval (Eq' a b) s = (aval a s - aval b s = 0) := by
+    sorry
+    /-
+    induction a generalizing b <;> simp_all
+    case ANum str => sorry
+
+
+
+    sorry
+    case AString => sorry
+    case APlus => sorry
+    -/
+
 end ch3_7
 
 section ch3_8
