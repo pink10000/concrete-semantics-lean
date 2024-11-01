@@ -27,46 +27,6 @@ section ch3_4 -- p32
 
   #eval aval (APlus (ANum 3) (AString "x")) (fun _ => 0)
 
-  /- Ch3.1.3, Constant Folding -/
-  def asimp_const (a : aexp) : aexp :=
-    match a with
-    | ANum z      => ANum z
-    | AString z   => AString z
-    | APlus x y =>
-      match asimp_const x, asimp_const y with
-      | ANum x, ANum y => ANum (x + y)
-      | x, y           => APlus x y
-    | Times x y =>
-      match asimp_const x, asimp_const y with
-      | ANum x, ANum y => ANum (x * y)
-      | x, y           => Times x y
-
-  #eval asimp_const (Times (ANum 2) (ANum 3))
-  #eval asimp_const (APlus (ANum 2) (asimp_const (Times (ANum 2) (ANum 8))))
-  #eval asimp_const (APlus (ANum 2) (asimp_const (Times (ANum 2) (APlus (ANum 2) (ANum 8)))))
-
-  theorem asimp_const_is_aval : ∀ (a : aexp) (st : state), (aval (asimp_const a) st) = (aval a st) := by
-    intro a st
-    induction a <;> simp
-    case APlus x y ihx ihy =>
-      simp [asimp_const]
-      split
-      · case h_1 x' y' numx' numy' => -- ANum x, ANum y case
-        simp
-        simp [numx'] at ihx;
-        simp [numy'] at ihy;
-        rw [ihx, ihy]
-      · case h_2 => simp [asimp_const, ihx, ihy] -- Otherwise
-    case Times x t ihx ihy =>
-      simp [asimp_const]
-      split
-      · case h_1 x' y' numx' numy' => -- ANum x, ANum y case
-        simp
-        simp [numx'] at ihx;
-        simp [numy'] at ihy;
-        rw [ihx, ihy]
-      · case h_2 => simp [asimp_const, ihx, ihy] -- Otherwise
-
   def aexp_plus (a b : aexp) : aexp :=
     match a, b with
     | ANum x, ANum y => ANum (x + y)
@@ -116,15 +76,39 @@ section ch3_4 -- p32
 
   theorem ATimes_1 : aval (Times (ANum 1) a) st = aval a st := by simp
 
-  -- might be worth trying to rewrite some of the def or removing entirely. idk how to solve!
-  theorem asimp_is_asimp_const : aval (asimp a) = aval (asimp_const a) := by
-    rcases a <;> simp [asimp, asimp_const, aexp_plus]
-    case APlus a b => sorry
-    case Times a b => sorry
-
   theorem asimp_is_aval : aval (asimp a) st = aval a st := by
-    rcases a <;> simp [aval, asimp]
-    case APlus x y =>
-      rcases x <;> rcases y <;> simp [aval, aexp_plus, asimp] <;> split <;> sorry
-    case Times x y => sorry
+    induction a <;> simp [asimp]
+    case APlus a b ha hb =>
+      simp [aexp_plus, aval]
+      split
+      case h_1 => simp_all only [aval]
+      case h_2 x heq x_1 =>
+        simp [*] at *; rw [← ha]
+        split
+        case h_1 x heq_1 => norm_num; exact hb
+        case h_2 x x_2 => simp; rw [← hb]; ring
+      case h_3 x heq x_1 x_2 =>
+        simp [*] at *; rw [← hb]
+        split
+        case h_1 x heq_1 => norm_num; exact ha
+        case h_2 x x_1 => simp; rw [← ha]
+      case h_4 => simp [*] at *
+    case Times a b ha hb =>
+      simp [aexp_times, aval]
+      split
+      case h_1 => simp_all only [aval]
+      case h_2 x heq x_1 =>
+        simp [*] at *; rw [← ha]
+        split
+        case h_1 x heq_1 => norm_num
+        case h_2 x x_2 => simp; rw [← hb]
+        case h_3 => simp; rw [hb]; rw [mul_comm]
+      case h_3 x heq x_1 x_2 =>
+        simp [*] at *; rw [← hb]
+        split
+        case h_1 x heq_1 => norm_num
+        case h_2 x x_1 => simp; rw [← ha]
+        case h_3 => simp; rw [<- ha]; apply Or.inl; rfl
+      case h_4 => simp [*] at *
+
 end ch3_4
