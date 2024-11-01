@@ -147,6 +147,46 @@ section ch3_prelim
     | BAnd b₁ b₂ => and (bsimp b₁) (bsimp b₂)
     | BLess a₁ a₂ => less (asimp a₁) (asimp a₂)
 
+  /- Ch3.3 Stack Machine and Compilation -/
+  inductive instr : Type :=
+  | LOADI : Int → instr
+  | LOAD  : String → instr
+  | ADD   : instr
+  deriving Repr
+  open instr
+
+  def stack : Type := mylist Int
+
+  /-
+  Executes one instruction on the stack.
+  -/
+  @[simp] def exec1 (ins : instr) (st : state) (stk : stack) : stack :=
+    match ins, st, stk with
+    | LOADI n,  _, stk            => n :: stk
+    | LOAD x , st, stk            => (st x) :: stk
+    | ADD    ,  _, i :: j :: stk' => (i + j) :: stk'
+    | ADD    ,  _, _              => stk -- needed to cover all cases (although this shouldnt happen)
+
+  /-
+  Executes the entire stack.
+  -/
+  @[simp] def exec (insl : mylist instr) (st : state) (stk : stack) : stack :=
+    match insl, st, stk with
+    | []         ,  _, stk => stk
+    | ins :: insl, st, stk => exec insl st (exec1 ins st stk)
+
+  @[simp] def comp (a : aexp) : mylist instr :=
+    match a with
+    | ANum n      => LOADI n :: []
+    | AString s   => LOAD s :: []
+    | APlus e₁ e₂ => comp e₁ ++ comp e₂ ++ ADD :: []
+
+
+  lemma exec_append : exec (l₁ ++ l₂) st stk = exec l₂ st (exec l₁ st stk) := by
+    induction l₁ generalizing l₂ st stk <;> simp_all [empty_concat]
+
+  lemma exec_comp_equiv_aval : exec (comp a) st stk = (aval a st) :: stk := by
+    induction a generalizing stk <;> simp_all [exec_append, add_comm]
 end ch3_prelim
 open aexp
 
