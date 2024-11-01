@@ -309,14 +309,10 @@ section ch3_7 -- p33
 
   theorem bval_eq_is_aval_eq : bval (Eq' a b) s = (aval a s = aval b s) := by
     simp
-    generalize aval a s = a_num
-    generalize aval b s = b_num
     rw [Int.eq_iff_le_and_ge, and_comm]
 
   theorem bval_le_is_aval_le : bval (Le' a b) s = (aval a s - aval b s ≤ 0) := by
     simp
-    generalize aval a s = a_num
-    generalize aval b s = b_num
     rw [le_iff_lt_or_eq]
 end ch3_7
 
