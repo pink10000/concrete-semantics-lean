@@ -266,10 +266,10 @@ section ch3_9
   deriving Repr
   open pbexp
 
-  def pbval (p : pbexp) (sb : String → Bool) : Bool :=
+  @[simp] def pbval (p : pbexp) (sb : String → Bool) : Bool :=
     match p with
     | VAR x     => sb x
-    | NEG b     => ¬(pbval b sb)
+    | NEG b     => !(pbval b sb)
     | AND b₁ b₂ => (pbval b₁ sb ∧ pbval b₂ sb)
     | OR b₁ b₂  => (pbval b₁ sb ∨ pbval b₂ sb)
 
@@ -277,7 +277,7 @@ section ch3_9
   Check if pbexp is an Negation Normal Form (nnf)
   where there are only NEG on VAR
   -/
-  def is_nnf (p : pbexp) : Bool :=
+  @[simp] def is_nnf (p : pbexp) : Bool :=
     match p with
     | VAR _       => true                   -- `VAR` is nnf
     | NEG (VAR _) => true                   -- `NEG` `VAR` is nnf
@@ -291,7 +291,7 @@ section ch3_9
   /-
   Convert pbexp into nnf as much as possible
   -/
-  def nnf (p : pbexp) : pbexp :=
+  @[simp] def nnf (p : pbexp) : pbexp :=
     match p with
     | VAR x           => VAR x
     | NEG (VAR x)     => NEG (VAR x)
@@ -304,26 +304,86 @@ section ch3_9
   #eval nnf (AND (VAR "x") (NEG (VAR "y")))
   #eval nnf (AND (VAR "x") (NEG (NEG (VAR "y"))))
   #eval nnf (AND (VAR "x") (NEG (OR (VAR "y") (VAR "z"))))
+  #eval nnf (AND (VAR "x") (NEG (AND (VAR "y") (VAR "z"))))
 
-  lemma nnf_preserved : pbval (nnf b) sb = pbval b sb := by sorry
+  @[simp] lemma pbval_neg : ∀ b, pbval (NEG b) sb = !(pbval b sb) := by simp_all
+
+  /-
+  THIS IS WRONG, `¬` is PROPOSITIONAL NEGATION, NOT BOOLEAN NEGATION
+  -/
+  @[simp] lemma pbval_neg_nnf' (p : pbexp) (sb : String → Bool) : pbval (nnf (NEG p)) sb = ¬(pbval (nnf p) sb) := by
+    induction p <;> simp_all; case AND b1 b2 _ _ =>
+    constructor
+    . rintro (h1 | h2) <;> simp_all
+    . intro h; by_cases (pbval (nnf b1) sb) <;> simp_all
+
+  @[simp] lemma pbval_neg_nnf (p : pbexp) : pbval (nnf (NEG p)) sb = !pbval (nnf p) sb := by
+    induction p <;> simp_all
+
+  @[simp] lemma nnf_preserved : pbval (nnf b) sb = pbval b sb := by
+    induction b <;> simp_all [nnf, pbval, pbval_neg, pbval_neg_nnf]
 
   def b : pbexp := VAR "x"
   #eval is_nnf (nnf b)
 
   /-
+  Helper function to chec if `OR` appears after `AND`.
+  -/
+  @[simp] def conj_of_lit (p : pbexp) : Bool :=
+    match p with
+    | VAR _     => true
+    | OR _ _    => false
+    | NEG q     => conj_of_lit q
+    | AND p₁ p₂ => conj_of_lit p₁ ∧ conj_of_lit p₂
+
+  /-
   Check if pbexp is in Disjunctive Normal Form (dnf)
   if it is an nnf and no OR occurs below an AND
   -/
-  def is_dnf (p : pbexp) : Bool := by sorry
+  @[simp] def is_dnf (p : pbexp) : Bool :=
+    match is_nnf p with
+    | false => false
+    | true  =>
+      match p with
+      | VAR _     => true
+      | NEG q     => is_dnf q
+      | OR q₁ q₂  => is_dnf q₁ ∧ is_dnf q₂
+      | AND q₁ q₂ => conj_of_lit q₁ ∧ conj_of_lit q₂
+
+  #eval is_dnf (AND (VAR "x") (NEG (VAR "y")))
+  #eval is_dnf (AND (VAR "x") (NEG (NEG (VAR "y"))))
+    #eval is_nnf (AND (VAR "x") (NEG (NEG (VAR "y"))))
 
   /-
   Convert from nnf to dnf
   -/
-  def dnf_of_nnf (p : pbexp) : pbexp := by sorry
+  @[simp] def dnf_of_nnf (p : pbexp) : pbexp :=
+    match p with
+    | VAR x     => VAR x
+    | NEG q     => NEG (dnf_of_nnf q)
+    | OR q₁ q₂  => OR (dnf_of_nnf q₁) (dnf_of_nnf q₂)
+    | AND q₁ q₂ =>
+      match dnf_of_nnf q₁, dnf_of_nnf q₂ with
+      | OR q₁₁ q₁₂, q₂         => OR (AND q₁₁ q₂) (AND q₁₂ q₂)
+      | q₁        , OR q₂₁ q₂₂ => OR (AND q₁ q₂₁) (AND q₁ q₂₂)
+      | q₁        , q₂         => AND q₁ q₂
 
-  lemma dnf_of_nnf_preserved : pbval (dnf_of_nnf b) sb = pbval b sb := by sorry
+  #eval dnf_of_nnf (AND (VAR "x") (NEG (VAR "y")))
+  #eval dnf_of_nnf (AND (VAR "x") (NEG (NEG (VAR "y"))))
+  #eval dnf_of_nnf (AND (VAR "x") (OR (VAR "y") (VAR "z")))
 
-  lemma dnf_of_nnf_conversion : is_nnf b → is_dnf (dnf_of_nnf b) := by sorry
+  @[simp] lemma dnf_of_nnf_preserved : pbval (dnf_of_nnf b) sb = pbval b sb := by
+    induction b <;> simp_all [dnf_of_nnf, pbval]
+    case AND b1 b2 _ _ =>
+      split <;> simp_all
+      case h_1 =>
+        by_cases (pbval (dnf_of_nnf b1) sb) <;> simp_all
+        by_cases (pbval (dnf_of_nnf b2) sb) <;> simp_all
+      case h_2 =>
+        by_cases (pbval (dnf_of_nnf b1) sb) <;> simp_all
+
+  lemma dnf_of_nnf_conversion : is_nnf b → is_dnf (dnf_of_nnf b) := by
+    intro h; contrapose! h; induction b <;> simp_all
 
 end ch3_9
 
