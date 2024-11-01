@@ -193,7 +193,7 @@ section ch3_7 -- p33
   open aexp
   open bexp
 
-  @[simp] def Eq' (a b: aexp) : bexp :=
+  def Eq' (a b: aexp) : bexp :=
     BAnd (BNot (BLess a b)) (BNot (BLess b a))
 
   def sam_st := (fun (_ : String) => (0 : ℤ ))
@@ -205,19 +205,17 @@ section ch3_7 -- p33
   def Le' (a b: aexp) : bexp := -- Being less than or equal to requires defining Or, which can be expressed in terms of `not`s and `and`s with De Morgan's i.e. (x + y) = (x'y')' where x and y are expressions in boolean algebra. Our x is "less than" and our y is "equal to"
     BNot (BAnd (BNot (BLess a b)) (BNot (Eq' a b)))
 
-  theorem bval_eq_is_aval_equality : bval (Eq' a b) s = (aval a s - aval b s = 0) := by
+  theorem bval_eq_is_aval_eq : bval (Eq' a b) s = (aval a s = aval b s) := by
     simp
     generalize aval a s = a_num
     generalize aval b s = b_num
-    by_cases a_b_eq: a_num = b_num
-    case pos =>
-      · constructor <;> intro h;
-        linarith
-        constructor <;> simp [a_b_eq]
-    case neg =>
-      · constructor <;> intro h
-        linarith
-        constructor <;> linarith
+    rw [Int.eq_iff_le_and_ge, and_comm]
+
+  theorem bval_le_is_aval_le : bval (Le' a b) s = (aval a s - aval b s ≤ 0) := by
+    simp
+    generalize aval a s = a_num
+    generalize aval b s = b_num
+    rw [le_iff_lt_or_eq]
 end ch3_7
 
 section ch3_8
@@ -227,6 +225,7 @@ section ch3_9
 end ch3_9
 
 section ch3_10
+
 end ch3_10
 
 section ch3_11
