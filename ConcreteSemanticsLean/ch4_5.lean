@@ -4,6 +4,8 @@ import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Basic
 
+import ConcreteSemanticsLean.ch2
+
 /- Ch4.5.1 : An Example: Even Numbers -/
 section ch4_5_1
 
@@ -56,6 +58,7 @@ section ch4_5_1
   inductive star {α : Type} (r : α → α → Prop) : α → α → Prop
   | refl {x : α} : star r x x
   | step {x y z : α} (h₁ : r x y) (h₂ : star r y z) : star r x z
+  #check star
 
   @[simp] lemma star_trans : star r x y → star r y z → star r x z := by
     intro xy yz
@@ -69,6 +72,21 @@ end ch4_5_1
 
 
 section q4_2
+
+  inductive palindrome : mylist α → Prop :=
+  | pal0                                           : palindrome []
+  | pal1 (a : α)                                   : palindrome (a :: [])
+  | pal2 (a : α) (l : mylist α) (h : palindrome l) : palindrome (a :: l ++ (a :: []))
+  #check palindrome
+
+  lemma pal_is_rev : palindrome l → reverse l = l := by
+    intro pal
+    induction pal <;> simp [reverse, append]
+    case pal2 α a l pal rev =>
+      rw [reverse_concat]; simp [reverse, append]
+      rw [rev, empty_concat]
+      exact append_is_concat l a
+
 end q4_2
 
 section q4_3
@@ -78,6 +96,36 @@ section q4_4
 end q4_4
 
 section q4_5
+
+  inductive S : mylist Char → Prop
+  | empty : S []
+  | aSb {w : mylist Char} : S w → S ('a' :: w ++ ('b' :: []))
+  | SS {w1 w2 : mylist Char} : S w1 → S w2 → S (w1 ++ w2)
+
+  inductive T : mylist Char → Prop
+  | empty : T []
+  | TaTb {w : mylist Char} : T w → T ('a' :: w ++ ('b' :: []))
+
+  lemma T_implies_S : ∀ w, T w → S w := by
+    intro w tw
+    induction tw
+    . exact S.empty
+    . case TaTb w' _ sw' =>
+      apply S.aSb; exact sw'
+
+  lemma S_implies_T : ∀ w, S w → T w := by
+    intro w sw
+    induction sw
+    . exact T.empty
+    . case aSb w' sw' tw' =>
+      apply T.TaTb; exact tw'
+
+  lemma S_iff_T : ∀ w, S w ↔ T w := by
+    intro w; constructor
+    . exact S_implies_T w
+    . exact T_implies_S w
+
+
 end q4_5
 
 section q4_6
