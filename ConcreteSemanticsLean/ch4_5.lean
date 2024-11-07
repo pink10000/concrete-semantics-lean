@@ -57,13 +57,31 @@ section ch4_5_1
   | refl {x : α} : star r x x
   | step {x y z : α} (h₁ : r x y) (h₂ : star r y z) : star r x z
 
+  @[simp] lemma star_trans : star r x y → star r y z → star r x z := by
+    intro xy yz
+    induction xy
+    . exact yz
+    . case step x' y' z' x'y' _ z'z_y'z =>
+      exact star.step x'y' (z'z_y'z yz)
 
-  lemma star_trans : star r x y → star r y z → star r x z := by
-    intro rxy ryz
-    induction rxy
-    . exact ryz
-    . case step x' y' z' rx'y' ry'z' rz'z_ry'z =>
-      sorry
-
-
+  /- Ch4.5.3 The General Case -/
 end ch4_5_1
+
+
+section q4_2
+end q4_2
+
+section q4_3
+end q4_3
+
+section q4_4
+end q4_4
+
+section q4_5
+end q4_5
+
+section q4_6
+end q4_6
+
+section q4_7
+end q4_7
