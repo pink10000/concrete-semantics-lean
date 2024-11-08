@@ -191,9 +191,17 @@ section q4_6
 
   #check aval_rel.plus
 
+  lemma aval_rel_is_aval : aval_rel a st n → aval a st = n := by
+    intro h
+    induction h <;> simp_all
 
-  
+  lemma aval_is_aval_rel : aval a st = n → aval_rel a st n := by
+    intro h; induction h; induction a
+    . apply aval_rel.num
+    . apply aval_rel.str
+    . apply aval_rel.plus <;> assumption
 
+  lemma aval_rel_iff_aval : aval_rel a st n ↔ aval a st = n := ⟨aval_rel_is_aval, aval_is_aval_rel⟩
 
 end q4_6
 
