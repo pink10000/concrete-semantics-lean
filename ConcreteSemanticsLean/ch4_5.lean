@@ -19,7 +19,7 @@ section ch4_5_1
   example : ev 0 → ev (0 + 2) → ev ((0 + 2) + 2) = ev 4 := by simp
 
   /- Rule Induction -/
-  def evn : ℕ → Prop
+  @[simp] def evn : ℕ → Prop
     | 0 => True
     | 1 => False
     | n + 2 => evn n
@@ -78,6 +78,16 @@ section ch4_5_1
           have ih   : evn n → ev n := evn_is_ev n -- recursive call to the lemma itself
           have ev_n : ev n         := ih h'
           by exact evSS ev_n
+
+  /-
+  Intended solution using evn.induct
+  -/
+  example : ∀ n, evn n → ev n := by
+    intros n h
+    induction n using evn.induct
+    . apply ev0
+    . contradiction
+    . simp_all [evn]; exact evSS (by assumption)
 
   /- Ch4.5.2 The Reflexive Transitive Closure -/
   inductive star {α : Type} (r : α → α → Prop) : α → α → Prop
@@ -184,24 +194,26 @@ section q4_5
   | empty : T []
   | TaTb {w : mylist Char} : T w → T ('a' :: w ++ ('b' :: []))
 
-  lemma T_implies_S : ∀ w, T w → S w := by
-    intro w tw
+  lemma T_implies_S : T w → S w := by
+    intro tw
     induction tw
     . exact S.empty
     . case TaTb w' _ sw' =>
       apply S.aSb; exact sw'
 
-  lemma S_implies_T : ∀ w, S w → T w := by
-    intro w sw
+  lemma S_implies_T : S w → T w := by
+    intro sw
     induction sw
     . exact T.empty
     . case aSb w' sw' tw' =>
       apply T.TaTb; exact tw'
+    . case SS w1 w2 sw1 sw2 tw1 tw2 =>
+      sorry
 
-  lemma S_iff_T : ∀ w, S w ↔ T w := by
-    intro w; constructor
-    . exact S_implies_T w
-    . exact T_implies_S w
+  lemma S_iff_T : S w ↔ T w := by
+    constructor
+    . exact S_implies_T
+    . exact T_implies_S
 
 end q4_5
 
