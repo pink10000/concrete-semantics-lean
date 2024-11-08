@@ -146,9 +146,20 @@ section q4_3
 end q4_3
 
 section q4_4
+-- iter holds when for some x_0 ... x_n, the relation r x_i x_{i+1} holds.
 inductive iter {α : Type} : (α → α → Prop) → Nat → (α → α → Prop)
   | refl : iter r 0 x x
-  | step : r x y → iter r n y z → iter r (n + 1) x z
+  | step : r x y → iter r n y z → iter r (n + 1) x z -- getting r x_i x_{i+1}
+
+
+theorem star_iter : star r x y → ∃ n, iter r n x y := by
+  intro starh
+  induction starh
+  · case refl => use 0; exact iter.refl
+  · case step α z1 z2 z3 e syz rnyz =>
+    cases rnyz
+    case intro n ih => use (n+1); exact (iter.step r n z1 z2 z3)
+  sorry
 end q4_4
 
 section q4_5
