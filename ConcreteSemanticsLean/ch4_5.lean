@@ -146,6 +146,9 @@ section q4_3
 end q4_3
 
 section q4_4
+inductive iter {α : Type} : (α → α → Prop) → Nat → (α → α → Prop)
+  | refl : iter r 0 x x
+  | step : r x y → iter r n y z → iter r (n + 1) x z
 end q4_4
 
 section q4_5
