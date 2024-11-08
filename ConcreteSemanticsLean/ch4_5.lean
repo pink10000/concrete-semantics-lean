@@ -5,6 +5,7 @@ import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Basic
 
 import ConcreteSemanticsLean.ch2
+import ConcreteSemanticsLean.ch3
 
 /- Ch4.5.1 : An Example: Even Numbers -/
 section ch4_5_1
@@ -125,10 +126,22 @@ section q4_5
     . exact S_implies_T w
     . exact T_implies_S w
 
-
 end q4_5
 
 section q4_6
+
+  inductive aval_rel : aexp → state → Int → Prop
+  | num (n : Int) (st : state) : aval_rel (aexp.ANum n) st n
+  | str (s : String) (st : state) : aval_rel (aexp.AString s) st (st s)
+  | plus (a1 a2 : aexp) (n1 n2 : Int) (st : state) :
+      aval_rel a1 st n1 → aval_rel a2 st n2 → aval_rel (aexp.APlus a1 a2) st (n1 + n2)
+
+  #check aval_rel.plus
+
+
+  
+
+
 end q4_6
 
 section q4_7
