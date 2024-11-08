@@ -19,11 +19,10 @@ section ch4_5_1
   example : ev 0 → ev (0 + 2) → ev ((0 + 2) + 2) = ev 4 := by simp
 
   /- Rule Induction -/
-  def evn (n : ℕ) :=
-    match n with
+  def evn : ℕ → Prop
     | 0 => True
-    | Nat.succ 0 => False
-    | Nat.succ (Nat.succ n) => evn n
+    | 1 => False
+    | n + 2 => evn n
   #check evn
 
   example : ev m → evn m := by
@@ -33,13 +32,13 @@ section ch4_5_1
     case evSS m' _ evn_m =>
       simp [ev, evn]; exact evn_m
 
-  example : ev m → ev (m - 2) := by
+  lemma ev_minus2 : ev m → ev (m - 2) := by
     intro h
     induction h <;> simp[ev]
     . apply ev0
     . assumption
 
-  example : ev n → ev (Nat.succ (Nat.succ n)) := by
+  lemma ev_is_evn : ev n → ev (Nat.succ (Nat.succ n)) := by
     intro evn; induction evn
     . exact (evSS ev0)
     . exact (evSS (by assumption))
@@ -48,12 +47,37 @@ section ch4_5_1
   example : ev (Nat.succ (Nat.succ (Nat.succ (Nat.succ 0)))) := by
     apply evSS; apply evSS; apply ev0
 
+  @[simp] lemma succ_not_ev : ev n → ¬ev (n + 1) := by
+    intro h; induction h
+    . intro h'; contradiction
+    . case _ n' _ ih =>
+      intro h';
+      apply ev_minus2 at h'; simp at h'; contradiction
 
-  lemma evn_is_ev : evn n → ev n := by
-    intro evn_n; induction n
-    . sorry
-    . sorry
+  @[simp] lemma succ_not_evn : ∀ n, evn n → ¬evn (n + 1) := by
+    intro n h; induction n
+    . intro h'; contradiction
+    . case _ n' ih =>
+      intro h'; contrapose! h;
+      exact ih h'
 
+  @[simp] lemma sub_not_evn : ∀ n ≥ 1, evn n → ¬evn (n - 1) := by
+    intro n h; induction n
+    . contradiction
+    . case _ n' ih =>
+      intro h'; simp_all [evn];
+      contrapose! h'; apply succ_not_evn at h'; exact h'
+
+  lemma evn_is_ev : ∀ n, evn n → ev n :=
+    fun n =>
+      match n with
+      | 0     => fun _ => ev.ev0
+      | 1     => fun h => by contradiction
+      | n + 2 => fun h =>
+          have h'   : evn n        := h
+          have ih   : evn n → ev n := evn_is_ev n -- recursive call to the lemma itself
+          have ev_n : ev n         := ih h'
+          by exact evSS ev_n
 
   /- Ch4.5.2 The Reflexive Transitive Closure -/
   inductive star {α : Type} (r : α → α → Prop) : α → α → Prop
