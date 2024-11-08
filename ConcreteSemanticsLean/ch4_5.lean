@@ -90,6 +90,59 @@ section q4_2
 end q4_2
 
 section q4_3
+  variable (r : α → α → Prop)
+
+  inductive star' {α : Type} (r : α → α → Prop) : α → α → Prop
+  | refl' : star' r x x
+  | step' : star' r x y → r y z → star' r x z
+  -- instead of r x y → star' r y z → star' r x z
+
+  lemma star_star' : star r x y → r y z → star r x z := by
+    intro xy yz
+    induction xy
+    . exact star.step yz star.refl
+    . case step x' y' z' x'y' sy'z' z'z_y'z =>
+      exact star.step x'y' (z'z_y'z yz)
+
+  lemma star'_star : star' r y z → r x y → star' r x z := by
+    intro yz xy
+    induction yz
+    . apply star'.step'
+      . exact star'.refl'
+      . exact xy
+    . case step' x' y' _ x'y' sxx' =>
+      apply star'.step' (by exact sxx')
+      exact x'y'
+
+  theorem star'_trans : star' r x y → star' r y z → star' r x z := by
+    intro h1
+    induction h1
+    . exact fun a => a
+    . case step' x' y' _ x'y' sy'z' =>
+      intro h2
+      have h : star' r x' z := by
+        apply star'_star; apply h2; exact x'y'
+      apply sy'z' h
+
+  theorem star'_forward : star' r x y → star r x y := by
+    intro h
+    induction h
+    . exact star.refl
+    . case step' y' z _ y'z sxy' =>
+      apply star_star'; exact sxy'; exact y'z
+
+  theorem star'_backward : star r x y → star' r x y := by
+    intro h
+    induction h
+    . exact star'.refl'
+    . case step x' y' z x'y' _ s'y'z =>
+      apply star'_star; exact s'y'z; exact x'y'
+
+  theorem star_iff_star' : star r x y ↔ star' r x y := by
+    constructor
+    . apply star'_backward
+    . apply star'_forward
+
 end q4_3
 
 section q4_4
