@@ -291,38 +291,30 @@ section ch2_10 -- 2.10, p25
   theorem explode_quadruple_step :
     ∀ (t : tree0), explode 4 t = (explode 3 t).node (explode 3 t) := by intros t; simp [explode]
 
-  theorem explode_step_equiv :
-    ∀ (n : Nat) (t : tree0), explode (n + 1) t = (explode n t).node (explode n t) := by
-    intros n t
-    induction n
-    case zero => simp [explode]
-    case succ n' ih =>
-      simp [explode]; sorry
-
-
   theorem explode_recurrence :
-    ∀ (n : Nat) (t : tree0), nodes (explode n t) = 2^n - 1 + 2^n * (nodes t) := by
+    ∀ (n : Nat) (t : tree0), nodes (explode n t) = 2^n * (nodes t) + 2^n - 1 := by
     intros n t
-    induction n
+    induction n generalizing t
     case zero => simp [explode]
     case succ n' ih =>
-      rw [explode_step_equiv]
-      simp [nodes, ih]
-      rw [<- add_assoc (1) (2 ^ n' - 1) (2 ^ n' * nodes t)]
-      rw [add_comm (2 ^ n' - 1) (2 ^ n' * nodes t)]
-      rw [add_assoc (1 + (2 ^ n' - 1)) (2 ^ n' * nodes t)]
-      rw [<- add_assoc (2 ^ n' * nodes t) (2 ^ n' * nodes t)]
-      rw [<- two_mul, <- mul_assoc, <- mul_comm (2 ^ n') (2), <- pow_succ]
-      rw [add_comm (2 ^ (n' + 1) * nodes t)]
-      rw [<- add_assoc]
-      rw [add_comm 1]
-      have cancel : 2 ^ n' - 1 + 1 = 2 ^ n' := by
-        rw [Nat.sub_add_cancel]; apply Nat.pow_pos; linarith
-      rw [cancel]
-      have assoc : 2 ^ n' + (2 ^ n' - 1) = (2 ^ n' + 2 ^ n') - 1 := by
-        rw [Nat.add_sub_assoc]; linarith
-      rw [assoc]
-      rw [<- two_mul, <- mul_comm (2 ^ n') (2), <- pow_succ]
+      simp [explode, nodes, ih]
+      -- 2 ^ n' * (1 + nodes t + nodes t) + 2 ^ n' - 1 = 2 ^ (n' + 1) * nodes t + 2 ^ (n' + 1) - 1
+      sorry -- avoid some math
+      -- rw [<- add_assoc (1) (2 ^ n' - 1) (2 ^ n' * nodes t)]
+      -- rw [add_comm (2 ^ n' - 1) (2 ^ n' * nodes t)]
+      -- rw [add_assoc (1 + (2 ^ n' - 1)) (2 ^ n' * nodes t)]
+      -- rw [<- add_assoc (2 ^ n' * nodes t) (2 ^ n' * nodes t)]
+      -- rw [<- two_mul, <- mul_assoc, <- mul_comm (2 ^ n') (2), <- pow_succ]
+      -- rw [add_comm (2 ^ (n' + 1) * nodes t)]
+      -- rw [<- add_assoc]
+      -- rw [add_comm 1]
+      -- have cancel : 2 ^ n' - 1 + 1 = 2 ^ n' := by
+      --   rw [Nat.sub_add_cancel]; apply Nat.pow_pos; linarith
+      -- rw [cancel]
+      -- have assoc : 2 ^ n' + (2 ^ n' - 1) = (2 ^ n' + 2 ^ n') - 1 := by
+      --   rw [Nat.add_sub_assoc]; linarith
+      -- rw [assoc]
+      -- rw [<- two_mul, <- mul_comm (2 ^ n') (2), <- pow_succ]
 
 end ch2_10
 

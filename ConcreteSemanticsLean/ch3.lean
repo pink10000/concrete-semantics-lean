@@ -127,7 +127,7 @@ section ch3_prelim
   deriving Repr
   open bexp
 
-  def bval (b : bexp) (st : state) : Bool :=
+  @[simp] def bval (b : bexp) (st : state) : Bool :=
     match b with
     | Bc v        => v
     | BNot b      => ¬(bval b st)
@@ -365,7 +365,29 @@ section ch3_6 -- p32
 
 end ch3_6
 
-section ch3_7
+section ch3_7 -- p33
+  open aexp
+  open bexp
+
+  def Eq' (a b: aexp) : bexp :=
+    BAnd (BNot (BLess a b)) (BNot (BLess b a))
+
+  def sam_st := (fun (_ : String) => (0 : ℤ ))
+  #check sam_st
+  #eval bval (Eq' (ANum 4) (ANum 6)) sam_st = (aval (ANum 4) sam_st == aval (ANum 6) sam_st)
+
+
+  #eval Eq' (ANum 1) (ANum 1)
+  def Le' (a b: aexp) : bexp := -- Being less than or equal to requires defining Or, which can be expressed in terms of `not`s and `and`s with De Morgan's i.e. (x + y) = (x'y')' where x and y are expressions in boolean algebra. Our x is "less than" and our y is "equal to"
+    BNot (BAnd (BNot (BLess a b)) (BNot (Eq' a b)))
+
+  theorem bval_eq_is_aval_eq : bval (Eq' a b) s = (aval a s = aval b s) := by
+    simp
+    rw [Int.eq_iff_le_and_ge, and_comm]
+
+  theorem bval_le_is_aval_le : bval (Le' a b) s = (aval a s - aval b s ≤ 0) := by
+    simp
+    rw [le_iff_lt_or_eq]
 end ch3_7
 
 
@@ -504,6 +526,50 @@ namespace ch3_9
 end ch3_9
 
 section ch3_10
+  open instr
+  /-
+  Executes one instruction on the stack.
+  -/
+  @[simp] def exec1_310 (ins : instr) (st : state) (stk : stack) : Option stack :=
+    match ins, st, stk with
+    | LOADI n,  _, stk            => some (n :: stk)
+    | LOAD x , st, stk            => some ((st x) :: stk)
+    | ADD    ,  _, i :: j :: stk' => some ((i + j) :: stk')
+    | ADD    ,  _, _              => none -- stack underflow
+
+  /-
+  Executes the entire stack.
+  -/
+  @[simp] def exec_310 (insl : mylist instr) (st : state) (stk : stack) : Option stack :=
+    match insl, st, stk with
+    | []         ,  _, stk => some stk
+    | ins :: insl, st, stk =>
+      match (exec1_310 ins st stk) with
+      | some exec1_stack => exec_310 insl st exec1_stack
+      | none => none -- a stack underflow previously occurred and the stack is completely invalid
+
+  def bind (k: α → Option α) (x: Option α) : Option α :=
+  match x with
+  | some x => k x
+  | none => none
+
+  lemma exec_append_310 : exec_310 (l₁ ++ l₂) st stk = bind
+   (exec_310 l₂ st) (exec_310 l₁ st stk)
+    := by
+    induction l₁ generalizing stk
+    case nil => rfl
+    case cons ins l₁ ih =>
+      simp_all
+      split
+      case h_1 => rfl
+      case h_2 => rfl
+
+  lemma exec_comp_equiv_aval_310 : match (exec_310 (comp a) st stk) with
+  | some exec_stack => exec_stack = (aval a st) :: stk
+  | none => exec_stack = none := by
+    induction a generalizing stk <;> simp_all [exec_append, add_comm]
+    sorry
+
 end ch3_10
 
 section ch3_11
