@@ -25,9 +25,9 @@ section ch7_1
 
   def test_com2 := WHILE Bc true DO test_com1
   #eval test_com2
-
   #eval test_com1 ;; test_com2
 
+  -- Propositions about state after executing a command
   inductive big_step : (com × state) → state → Prop :=
   | Skip        : big_step (SKIP, s) s
   | Assign      : big_step (x ::= a, s) (s(x := (aval a s)))
@@ -36,4 +36,22 @@ section ch7_1
   | IfFalse     : !(bval b s) → big_step (c2, s) t → big_step (IF b THEN c1 ELSE c2, s) t
   | WhileFalse  : !(bval b s) → big_step (WHILE b DO c, s) s
   | WhileTrue   : bval b s1 → big_step (c, s1) s2 → big_step (WHILE b DO c, s2) s3 → big_step (WHILE b DO c, s1) s3
+  open big_step
+
+  notation tuple "⟹" state => big_step tuple state
+  -- Prove that this example if true statement ends in the state where x = 1
+  namespace test_big_step
+    def start_state: state := (fun (_: String) => (0: Int))
+    def terminate_state: state := (start_state("x" := (aval (ANum 1) start_state)))
+    def test_bool_prop : bval (Bc true) start_state = true := by
+      simp
+
+    def test_c1 := "x" ::= ANum 1
+    def test_c2 := SKIP
+    def test_assign_prop : ("x" ::= ANum 1, start_state) ⟹ terminate_state :=
+      Assign
+
+    theorem if_true_ends_in_term_state : (IF (Bc true) THEN test_c1 ELSE test_c2, start_state) ⟹ terminate_state := IfTrue test_bool_prop test_assign_prop
+
+  end test_big_step
 end ch7_1
