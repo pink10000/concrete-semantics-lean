@@ -53,5 +53,11 @@ section ch7_1
 
     theorem if_true_ends_in_term_state : (IF (Bc true) THEN test_c1 ELSE test_c2, start_state) ⟹ terminate_state := IfTrue test_bool_prop test_assign_prop
 
+    -- what is the equivalent to code_pred in lean?
+    -- #eval ["x", "y"].map (("x" ::= ANum 1, start_state) ⟹ terminate_state)
   end test_big_step
+
+  theorem seq_assoc_bidirectional : ((c1 ;; c2 ;; c3, s) ⟹ t) ↔ ((c1 ;; (c2 ;; c3), s) ⟹ t) := by
+    constructor <;> intro h <;> cases h <;> case Seq s1 c1_s1 seq_t => apply big_step.Seq; exact c1_s1; exact seq_t
+
 end ch7_1
