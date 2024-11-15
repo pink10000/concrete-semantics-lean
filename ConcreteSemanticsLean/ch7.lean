@@ -60,4 +60,20 @@ section ch7_1
   theorem seq_assoc_bidirectional : ((c1 ;; c2 ;; c3, s) ⟹ t) ↔ ((c1 ;; (c2 ;; c3), s) ⟹ t) := by
     constructor <;> intro h <;> cases h <;> case Seq s1 c1_s1 seq_t => apply big_step.Seq; exact c1_s1; exact seq_t
 
+  def equiv_c (c1: com) (c2: com) : Prop :=
+    ∀ s t, ((c1, s) ⟹ t) = ((c2, s) ⟹ t)
+
+  notation c1 "~" c2 => equiv_c c1 c2
+
+  theorem equiv_rfl: c ~ c := by
+    intro s t
+    rfl
+
+  theorem equiv_sym: (c ~ c') → (c' ~ c) := by
+    intro h s t
+    rw [h]
+
+  example : (WHILE b DO c) ~ IF b THEN c;; WHILE b DO c ELSE SKIP := by
+    sorry
+
 end ch7_1
