@@ -84,8 +84,10 @@ section ch7_1
     · intro h
       cases h
       case IfTrue btrue seq_t => apply big_step.WhileTrue; exact btrue; apply big_step.Seq at seq_t; repeat sorry
-      case IfFalse bfalse skip_t => sorry
-      -- apply big_step.WhileFalse; exact bfalse; exact big_step.Seq c_s2 while_t
-
+      case IfFalse bfalse skip_t =>
+        have skip_s: (SKIP, s) ⟹ s := by exact big_step.Skip
+        have s_t: t = s := by sorry
+        rw [s_t]
+        apply WhileFalse; exact bfalse
 
 end ch7_1
