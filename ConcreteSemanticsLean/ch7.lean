@@ -73,7 +73,7 @@ section ch7_1
     intro h s t
     rw [h]
 
-  example : (WHILE b DO c) ~ IF b THEN c;; WHILE b DO c ELSE SKIP := by
+  example : (WHILE b DO c) ~ IF b THEN c ;; WHILE b DO c ELSE SKIP := by
     intro s t
     simp
     constructor
