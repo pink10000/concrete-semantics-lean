@@ -25,6 +25,13 @@ section ch3_prelim
   -- `state` is `vname → val` or `String → Int`
   def state : Type := String → Int
 
+  def update_state (f: state) (vname : String) (val : Int) :=
+    fun (x: String) =>
+      if x = vname
+      then val
+      else f x
+
+  notation f "(" a " := " b ")" => update_state f a b
   @[simp] def aval (a : aexp) (st : state) : Int :=
     match a with
     | ANum n      => n
@@ -366,7 +373,7 @@ end ch3_7
 section ch3_8
 end ch3_8
 
-section ch3_9
+namespace ch3_9
   inductive pbexp : Type :=
   | VAR : String → pbexp
   | NEG : pbexp → pbexp
