@@ -74,6 +74,18 @@ section ch7_1
     rw [h]
 
   example : (WHILE b DO c) ~ IF b THEN c;; WHILE b DO c ELSE SKIP := by
-    sorry
+    intro s t
+    simp
+    constructor
+    · intro h
+      cases h
+      case WhileFalse bfalse => apply big_step.IfFalse; exact bfalse; exact big_step.Skip
+      case WhileTrue s2 btrue c_s2 while_t => apply big_step.IfTrue; exact btrue; exact big_step.Seq c_s2 while_t
+    · intro h
+      cases h
+      case IfTrue btrue seq_t => apply big_step.WhileTrue; exact btrue; apply big_step.Seq at seq_t; repeat sorry
+      case IfFalse bfalse skip_t => sorry
+      -- apply big_step.WhileFalse; exact bfalse; exact big_step.Seq c_s2 while_t
+
 
 end ch7_1
