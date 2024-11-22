@@ -33,8 +33,8 @@ section ch7_1
   | Assign      : big_step (x ::= a, s) (s(x := (aval a s)))
   | Seq         : big_step (c1, s1) s2 → big_step (c2, s2) s3 → big_step (c1 ;; c2, s1) s3
   | IfTrue      : bval b s → big_step (c1, s) t → big_step (IF b THEN c1 ELSE c2, s) t
-  | IfFalse     : !(bval b s) → big_step (c2, s) t → big_step (IF b THEN c1 ELSE c2, s) t
-  | WhileFalse  : !(bval b s) → big_step (WHILE b DO c, s) s
+  | IfFalse     : ¬(bval b s) → big_step (c2, s) t → big_step (IF b THEN c1 ELSE c2, s) t
+  | WhileFalse  : ¬(bval b s) → big_step (WHILE b DO c, s) s
   | WhileTrue   : bval b s1 → big_step (c, s1) s2 → big_step (WHILE b DO c, s2) s3 → big_step (WHILE b DO c, s1) s3
   open big_step
 
@@ -63,14 +63,14 @@ section ch7_1
   @[simp] lemma seq_inv : big_step (c1 ;; c2, s1) s3 → ∃s2, big_step (c1, s1) s2 ∧ big_step (c2, s2) s3 := by
     intro seq; rcases seq; case _ s2 c1_s1 c2_s2 => exact ⟨s2, c1_s1, c2_s2⟩
   @[simp] lemma if_inv : big_step (IF b THEN c1 ELSE c2, s) t →
-    (bval b s ∧ big_step (c1, s) t) ∨ (!bval b s ∧ big_step (c2, s) t) := by
+    (bval b s ∧ big_step (c1, s) t) ∨ (¬bval b s ∧ big_step (c2, s) t) := by
 
     intro ifb; cases ifb
     . case _ btrue c1_s => left; exact ⟨btrue, c1_s⟩
     . case _ bfalse c2_s => right; exact ⟨bfalse, c2_s⟩
 
   @[simp] lemma while_inv : big_step (WHILE b DO c, s) t →
-    (!bval b s ∧ t = s) ∨ (bval b s ∧ (∃s', big_step (c, s) s' ∧ big_step (WHILE b DO c, s') t)) := by
+    (¬bval b s ∧ t = s) ∨ (bval b s ∧ (∃s', big_step (c, s) s' ∧ big_step (WHILE b DO c, s') t)) := by
     intro whileb; cases whileb
     . case _ bfalse => left; exact ⟨bfalse, rfl⟩
     . case _ s1 btrue c_s1 while_s2 =>
@@ -106,6 +106,34 @@ section ch7_1
         cases seq_t; exact big_step.WhileTrue btrue (by assumption) (by assumption)
       case IfFalse bfalse skip_t =>
         cases skip_t; exact big_step.WhileFalse bfalse
+
+  -- Lemma 7.4
+  example : (IF b THEN c ELSE c) ~ c := by
+    intro s t; simp
+    constructor
+    intro h; cases h <;> assumption
+    · intro h; cases h
+      · by_cases h : (bval b s)
+        · apply big_step.IfTrue h; exact big_step.Skip
+        · apply big_step.IfFalse h; exact big_step.Skip
+      · by_cases h : (bval b s)
+        · apply big_step.IfTrue h; exact big_step.Assign
+        · apply big_step.IfFalse h; exact big_step.Assign
+      · by_cases h : (bval b s)
+        · apply big_step.IfTrue h; exact big_step.Seq (by assumption) (by assumption)
+        · apply big_step.IfFalse h; exact big_step.Seq (by assumption) (by assumption)
+      · by_cases h : (bval b s)
+        · apply big_step.IfTrue h; exact big_step.IfTrue (by assumption) (by assumption)
+        · apply big_step.IfFalse h; exact big_step.IfTrue (by assumption) (by assumption)
+      · by_cases h : (bval b s)
+        · apply big_step.IfTrue h; exact big_step.IfFalse (by assumption) (by assumption)
+        · apply big_step.IfFalse h; exact big_step.IfFalse (by assumption) (by assumption)
+      · by_cases h : (bval b s)
+        · apply big_step.IfTrue h; exact big_step.WhileFalse (by assumption)
+        · apply big_step.IfFalse h; exact big_step.WhileFalse (by assumption)
+      · by_cases h : (bval b s)
+        · apply big_step.IfTrue h; exact big_step.WhileTrue (by assumption) (by assumption) (by assumption)
+        · apply big_step.IfFalse h; exact big_step.WhileTrue (by assumption) (by assumption) (by assumption)
 
   -- Lemma 7.8
   theorem equiv_rfl: c ~ c := by
