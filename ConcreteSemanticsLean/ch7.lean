@@ -79,15 +79,14 @@ section ch7_1
   -- Lemma 7.2
   theorem seq_assoc_bidirectional : (((c1 ;; c2) ;; c3, s) ⟹ t) ↔ ((c1 ;; (c2 ;; c3), s) ⟹ t) := by
     constructor <;> intro seq <;> rcases seq
-    . case _ s2 seq1 c3_s2 =>
-        rcases seq1
-        case _ s3 c1_s3 c2_s3 =>
-          apply big_step.Seq; exact c1_s3; apply big_step.Seq; exact c2_s3; exact c3_s2
-    . case _ s2 c1_s seq1 =>
-        rcases seq1
-        case _ s3 c2_s c3_s =>
-          apply big_step.Seq; apply big_step.Seq; exact c1_s; exact c2_s; exact c3_s
+    . case _ _ seq1 c3_s2 =>
+      rcases seq1
+      apply big_step.Seq; exact (by assumption); apply (big_step.Seq); exact (by assumption); exact c3_s2
+    . case _ _ c1_s seq1 =>
+      rcases seq1
+      apply (big_step.Seq); apply big_step.Seq; exact c1_s; exact (by assumption); exact (by assumption)
 
+  -- 7.2.4 Equivalence of Commands
   def equiv_c (c1: com) (c2: com) : Prop :=
     ∀ s t, ((c1, s) ⟹ t) = ((c2, s) ⟹ t)
 
@@ -101,21 +100,19 @@ section ch7_1
     intro h s t
     rw [h]
 
+  -- Lemma 7.3
   example : (WHILE b DO c) ~ IF b THEN c;; WHILE b DO c ELSE SKIP := by
-    intro s t
-    simp
+    intro s t; simp
     constructor
-    · intro h
-      cases h
-      case WhileFalse bfalse => apply big_step.IfFalse; exact bfalse; exact big_step.Skip
-      case WhileTrue s2 btrue c_s2 while_t => apply big_step.IfTrue; exact btrue; exact big_step.Seq c_s2 while_t
-    · intro h
-      cases h
-      case IfTrue btrue seq_t => apply big_step.WhileTrue; exact btrue; apply big_step.Seq at seq_t; repeat sorry
+    · intro h; cases h
+      case WhileFalse bfalse =>
+        apply big_step.IfFalse; exact bfalse; exact big_step.Skip
+      case WhileTrue s2 btrue c_s2 while_t =>
+        apply big_step.IfTrue; exact btrue; exact big_step.Seq c_s2 while_t
+    · intro h; cases h
+      case IfTrue btrue seq_t =>
+        cases seq_t; exact big_step.WhileTrue btrue (by assumption) (by assumption)
       case IfFalse bfalse skip_t =>
-        have skip_s: (SKIP, s) ⟹ s := by exact big_step.Skip
-        have s_t: t = s := by sorry
-        rw [s_t]
-        apply WhileFalse; exact bfalse
+        cases skip_t; exact big_step.WhileFalse bfalse
 
 end ch7_1
