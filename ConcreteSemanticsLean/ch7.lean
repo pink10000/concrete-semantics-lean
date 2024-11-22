@@ -92,16 +92,8 @@ section ch7_1
 
   notation c1 "~" c2 => equiv_c c1 c2
 
-  theorem equiv_rfl: c ~ c := by
-    intro s t
-    rfl
-
-  theorem equiv_sym: (c ~ c') → (c' ~ c) := by
-    intro h s t
-    rw [h]
-
   -- Lemma 7.3
-  example : (WHILE b DO c) ~ IF b THEN c;; WHILE b DO c ELSE SKIP := by
+  example : (WHILE b DO c) ~ IF b THEN c ;; WHILE b DO c ELSE SKIP := by
     intro s t; simp
     constructor
     · intro h; cases h
@@ -115,4 +107,16 @@ section ch7_1
       case IfFalse bfalse skip_t =>
         cases skip_t; exact big_step.WhileFalse bfalse
 
+  -- Lemma 7.8
+  theorem equiv_rfl: c ~ c := by
+    intro s t
+    rfl
+
+  theorem equiv_sym: (c ~ c') → (c' ~ c) := by
+    intro h s t
+    rw [h]
+
+  theorem equiv_trans: (c ~ c') → (c' ~ c'') → (c ~ c'') := by
+    intro ch1 ch2 s t
+    rw [ch1, ch2]
 end ch7_1
