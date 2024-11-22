@@ -38,7 +38,7 @@ section ch7_1
   | WhileTrue   : bval b s1 → big_step (c, s1) s2 → big_step (WHILE b DO c, s2) s3 → big_step (WHILE b DO c, s1) s3
   open big_step
 
-  notation tuple "⟹" state => big_step tuple state
+  notation tuple " ⟹ " state => big_step tuple state
   -- Prove that this example if true statement ends in the state where x = 1
   namespace test_big_step
     def start_state: state := (fun (_: String) => (0: Int))
@@ -48,8 +48,7 @@ section ch7_1
 
     def test_c1 := "x" ::= ANum 1
     def test_c2 := SKIP
-    def test_assign_prop : ("x" ::= ANum 1, start_state) ⟹ terminate_state :=
-      Assign
+    def test_assign_prop : ("x" ::= ANum 1, start_state) ⟹ terminate_state := Assign
 
     theorem if_true_ends_in_term_state : (IF (Bc true) THEN test_c1 ELSE test_c2, start_state) ⟹ terminate_state := IfTrue test_bool_prop test_assign_prop
 
@@ -57,8 +56,37 @@ section ch7_1
     -- #eval ["x", "y"].map (("x" ::= ANum 1, start_state) ⟹ terminate_state)
   end test_big_step
 
-  theorem seq_assoc_bidirectional : ((c1 ;; c2 ;; c3, s) ⟹ t) ↔ ((c1 ;; (c2 ;; c3), s) ⟹ t) := by
-    constructor <;> intro h <;> cases h <;> case Seq s1 c1_s1 seq_t => apply big_step.Seq; exact c1_s1; exact seq_t
+
+  -- 7.2.3 Rule Inversions
+  @[simp] lemma skip_inv : big_step (SKIP, s) t → t = s := by intro sk; cases sk; rfl
+  @[simp] lemma eval_inv : big_step (x ::= a, s) t → t = s(x := aval a s) := by intro ev; cases ev; rfl
+  @[simp] lemma seq_inv : big_step (c1 ;; c2, s1) s3 → ∃s2, big_step (c1, s1) s2 ∧ big_step (c2, s2) s3 := by
+    intro seq; rcases seq; case _ s2 c1_s1 c2_s2 => exact ⟨s2, c1_s1, c2_s2⟩
+  @[simp] lemma if_inv : big_step (IF b THEN c1 ELSE c2, s) t →
+    (bval b s ∧ big_step (c1, s) t) ∨ (!bval b s ∧ big_step (c2, s) t) := by
+
+    intro ifb; cases ifb
+    . case _ btrue c1_s => left; exact ⟨btrue, c1_s⟩
+    . case _ bfalse c2_s => right; exact ⟨bfalse, c2_s⟩
+
+  @[simp] lemma while_inv : big_step (WHILE b DO c, s) t →
+    (!bval b s ∧ t = s) ∨ (bval b s ∧ (∃s', big_step (c, s) s' ∧ big_step (WHILE b DO c, s') t)) := by
+    intro whileb; cases whileb
+    . case _ bfalse => left; exact ⟨bfalse, rfl⟩
+    . case _ s1 btrue c_s1 while_s2 =>
+      right; exact ⟨btrue, ⟨s1, c_s1, while_s2⟩⟩
+
+  -- Lemma 7.2
+  theorem seq_assoc_bidirectional : (((c1 ;; c2) ;; c3, s) ⟹ t) ↔ ((c1 ;; (c2 ;; c3), s) ⟹ t) := by
+    constructor <;> intro seq <;> rcases seq
+    . case _ s2 seq1 c3_s2 =>
+        rcases seq1
+        case _ s3 c1_s3 c2_s3 =>
+          apply big_step.Seq; exact c1_s3; apply big_step.Seq; exact c2_s3; exact c3_s2
+    . case _ s2 c1_s seq1 =>
+        rcases seq1
+        case _ s3 c2_s c3_s =>
+          apply big_step.Seq; apply big_step.Seq; exact c1_s; exact c2_s; exact c3_s
 
   def equiv_c (c1: com) (c2: com) : Prop :=
     ∀ s t, ((c1, s) ⟹ t) = ((c2, s) ⟹ t)
