@@ -112,28 +112,21 @@ section ch7_1
     intro s t; simp
     constructor
     intro h; cases h <;> assumption
-    · intro h; cases h
-      · by_cases h : (bval b s)
-        · apply big_step.IfTrue h; exact big_step.Skip
-        · apply big_step.IfFalse h; exact big_step.Skip
-      · by_cases h : (bval b s)
-        · apply big_step.IfTrue h; exact big_step.Assign
-        · apply big_step.IfFalse h; exact big_step.Assign
-      · by_cases h : (bval b s)
-        · apply big_step.IfTrue h; exact big_step.Seq (by assumption) (by assumption)
-        · apply big_step.IfFalse h; exact big_step.Seq (by assumption) (by assumption)
-      · by_cases h : (bval b s)
-        · apply big_step.IfTrue h; exact big_step.IfTrue (by assumption) (by assumption)
-        · apply big_step.IfFalse h; exact big_step.IfTrue (by assumption) (by assumption)
-      · by_cases h : (bval b s)
-        · apply big_step.IfTrue h; exact big_step.IfFalse (by assumption) (by assumption)
-        · apply big_step.IfFalse h; exact big_step.IfFalse (by assumption) (by assumption)
-      · by_cases h : (bval b s)
-        · apply big_step.IfTrue h; exact big_step.WhileFalse (by assumption)
-        · apply big_step.IfFalse h; exact big_step.WhileFalse (by assumption)
-      · by_cases h : (bval b s)
-        · apply big_step.IfTrue h; exact big_step.WhileTrue (by assumption) (by assumption) (by assumption)
-        · apply big_step.IfFalse h; exact big_step.WhileTrue (by assumption) (by assumption) (by assumption)
+    · intro h; cases h <;> by_cases h : (bval b s)
+      · apply (big_step.IfTrue h) big_step.Skip
+      · apply (big_step.IfFalse h) big_step.Skip
+      · apply (big_step.IfTrue h) big_step.Assign
+      · apply (big_step.IfFalse h) big_step.Assign
+      · apply (big_step.IfTrue h) (big_step.Seq (by assumption) (by assumption))
+      · apply (big_step.IfFalse h) (big_step.Seq (by assumption) (by assumption))
+      · apply (big_step.IfTrue h) (big_step.IfTrue (by assumption) (by assumption))
+      · apply (big_step.IfFalse h) (big_step.IfTrue (by assumption) (by assumption))
+      · apply (big_step.IfTrue h) (big_step.IfFalse (by assumption) (by assumption))
+      · apply (big_step.IfFalse h) (big_step.IfFalse (by assumption) (by assumption))
+      · apply (big_step.IfTrue h) (big_step.WhileFalse (by assumption))
+      · apply (big_step.IfFalse h) (big_step.WhileFalse (by assumption))
+      · apply (big_step.IfTrue h) (big_step.WhileTrue (by assumption) (by assumption) (by assumption))
+      · apply (big_step.IfFalse h) (big_step.WhileTrue (by assumption) (by assumption) (by assumption))
 
   -- Lemma 7.8
   theorem equiv_rfl: c ~ c := by
