@@ -143,32 +143,35 @@ section ch7_1
 
   -- Lemma 7.9
   theorem imp_is_deterministic : ((c, s) ⟹ t₁) → ((c, s) ⟹ t₂) → t₁ = t₂ := by
-    intro cst₁ cst₂
-    cases cst₁ <;> cases cst₂ <;> try simp_all
-    . case Seq.Seq c₁ s₁ c₂ c₁s c₂s₁s₁ s₂ c₁ss₂ c₂s₂ => sorry
-    . case IfTrue.IfTrue b c₁ c₂ c₁s bv bst₂ =>
-      cases bst₂
-      . exact skip_inv c₁s
-      . exact eval_inv c₁s
-      . sorry
-      . case _ b₂ c₁ c₂ b₂v c₁st₂ =>
-        have h1 := if_inv c₁s
-        simp_all
-        sorry
-      . case _ b c₁ c₂ bnv c₂st₂ =>
-        have h1 := if_inv c₁s
-        simp_all
-        sorry
-      . case _ b₂ c₃ bval =>
-        have h1 := while_inv c₁s
-        simp_all
-      . case _ b c₃ bval =>
-        have h1 := while_inv c₁s
-        simp_all
-        sorry
-    . case IfFalse.IfFalse b c₁ c₂ bnv c₂s =>
+    intro cst₁ cst₂;
+    cases cst₁
+    . apply skip_inv at cst₂; rw [cst₂]
+    . apply eval_inv at cst₂; rw [cst₂]
+    . case _ c₁ st c₂ a₁ a₂ =>
+      apply seq_inv at cst₂
+      -- rcases cst₂ with ⟨w, h⟩
       sorry
-      
+
+
+
+    -- induction c
+    -- . apply skip_inv at cst₁; apply skip_inv at cst₂; rw [cst₁, ← cst₂]
+    -- . apply eval_inv at cst₁; apply eval_inv at cst₂; rw [cst₁, ← cst₂]
+    -- . case _ cmd₁ cmd₂ cmd₁h cmd₂h =>
+    --   apply seq_inv at cst₁; apply seq_inv at cst₂;
+
+
+    --   -- . exact right;
+
+    --   sorry
+
+
+
+    -- . sorry
+
+
+
+
     sorry
 
 
