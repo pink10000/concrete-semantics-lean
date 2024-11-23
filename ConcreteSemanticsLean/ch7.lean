@@ -129,15 +129,47 @@ section ch7_1
       · apply (big_step.IfFalse h) (big_step.WhileTrue (by assumption) (by assumption) (by assumption))
 
   -- Lemma 7.8
-  theorem equiv_rfl: c ~ c := by
+  theorem equiv_rfl : c ~ c := by
     intro s t
     rfl
 
-  theorem equiv_sym: (c ~ c') → (c' ~ c) := by
+  theorem equiv_sym : (c ~ c') → (c' ~ c) := by
     intro h s t
     rw [h]
 
-  theorem equiv_trans: (c ~ c') → (c' ~ c'') → (c ~ c'') := by
+  theorem equiv_trans : (c ~ c') → (c' ~ c'') → (c ~ c'') := by
     intro ch1 ch2 s t
     rw [ch1, ch2]
+
+  -- Lemma 7.9
+  theorem imp_is_deterministic : ((c, s) ⟹ t₁) → ((c, s) ⟹ t₂) → t₁ = t₂ := by
+    intro cst₁ cst₂
+    cases cst₁ <;> cases cst₂ <;> try simp_all
+    . case Seq.Seq c₁ s₁ c₂ c₁s c₂s₁s₁ s₂ c₁ss₂ c₂s₂ => sorry
+    . case IfTrue.IfTrue b c₁ c₂ c₁s bv bst₂ =>
+      cases bst₂
+      . exact skip_inv c₁s
+      . exact eval_inv c₁s
+      . sorry
+      . case _ b₂ c₁ c₂ b₂v c₁st₂ =>
+        have h1 := if_inv c₁s
+        simp_all
+        sorry
+      . case _ b c₁ c₂ bnv c₂st₂ =>
+        have h1 := if_inv c₁s
+        simp_all
+        sorry
+      . case _ b₂ c₃ bval =>
+        have h1 := while_inv c₁s
+        simp_all
+      . case _ b c₃ bval =>
+        have h1 := while_inv c₁s
+        simp_all
+        sorry
+    . case IfFalse.IfFalse b c₁ c₂ bnv c₂s =>
+      sorry
+      
+    sorry
+
+
 end ch7_1
