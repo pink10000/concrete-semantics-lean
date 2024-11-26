@@ -1,5 +1,6 @@
 import Init.Prelude
 import ConcreteSemanticsLean.ch3
+import ConcreteSemanticsLean.ch4_5
 
 section ch7_1
 
@@ -153,7 +154,36 @@ section ch7_1
     . apply while_inv at cst₁; cases cst₁ <;> simp_all
       . case _ bvalh =>
         apply (?_); rcases bvalh with ⟨_, t₂, ⟨cmd₁s₁, whileb⟩⟩; simp_all
-
-
-
 end ch7_1
+
+
+section ch7_3
+
+  inductive small_step : (com × state) → (com × state) → Prop :=
+  | Assign : small_step (x ::= a, s) (SKIP, s(x := aval a s))
+  | Seq1   : small_step (SKIP ;; c₂, s) (c₂, s)
+  | Seq2   : small_step (c₁, s) (c₁', s') → small_step (c₁ ;; c₂, s) (c₁' ;; c₂, s')
+  | IfTrue : bval b s → small_step (IF b THEN c₁ ELSE c₂, s) (c₁, s)
+  | IfFalse : ¬(bval b s) → small_step (IF b THEN c₁ ELSE c₂, s) (c₂, s)
+  | While : small_step (WHILE b DO c, s) (IF b THEN c ;; WHILE b DO c ELSE SKIP, s)
+  open Repr
+  open Decidable
+  -- notation t₁ " ⟹* " t₂ => star (small_step) t₁ t₂
+
+  -- Example 7.10
+  def ex_Vz := aexp.AString "z"
+  def ex_Vx := aexp.AString "x"
+  def ex_c := ("x" ::= ex_Vz) ;; ("y" ::= ex_Vx)
+  def ex_s : state := fun v =>
+    if      v = "x" then 3
+    else if v = "y" then 7
+    else if v = "z" then 5 else 0
+  def ex_s1 : state := fun v =>
+    if      v = "x" then 5
+    else if v = "y" then 7
+    else if v = "z" then 5 else 0
+
+  set_option diagnostics true
+  -- #eval (ex_c, ex_s) ⟹* ((com.SKIP ;; ("y" ::= ex_Vx)), ex_s1)
+
+end ch7_3

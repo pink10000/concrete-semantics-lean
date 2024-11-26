@@ -93,6 +93,8 @@ section ch4_5_1
   inductive star {α : Type} (r : α → α → Prop) : α → α → Prop
   | refl {x : α} : star r x x
   | step {x y z : α} (h₁ : r x y) (h₂ : star r y z) : star r x z
+  open Repr
+  open Decidable
   #check star
 
   @[simp] lemma star_trans : star r x y → star r y z → star r x z := by
