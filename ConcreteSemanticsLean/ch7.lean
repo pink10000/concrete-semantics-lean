@@ -142,37 +142,18 @@ section ch7_1
     rw [ch1, ch2]
 
   -- Lemma 7.9
-  theorem imp_is_deterministic : ((c, s) ⟹ t₁) → ((c, s) ⟹ t₂) → t₁ = t₂ := by
-    intro cst₁ cst₂;
-    cases cst₁
-    . apply skip_inv at cst₂; rw [cst₂]
-    . apply eval_inv at cst₂; rw [cst₂]
-    . case _ c₁ st c₂ a₁ a₂ =>
-      apply seq_inv at cst₂
-      -- rcases cst₂ with ⟨w, h⟩
-      sorry
+  theorem imp_is_deterministic : (cs ⟹ t₁) → (cs ⟹ t₂) → t₁ = t₂ := by
+    intro cst₁ cst₂; induction cst₂ generalizing t₁
+    . apply skip_inv at cst₁; rw [cst₁]
+    . apply eval_inv at cst₁; rw [cst₁]
+    . apply seq_inv at cst₁; rcases cst₁ with ⟨_, _, _⟩; simp_all
+    . apply if_inv at cst₁; cases cst₁ <;> simp_all
+    . apply if_inv at cst₁; cases cst₁ <;> simp_all
+    . apply while_inv at cst₁; cases cst₁ <;> simp_all
+    . apply while_inv at cst₁; cases cst₁ <;> simp_all
+      . case _ bvalh =>
+        apply (?_); rcases bvalh with ⟨_, t₂, ⟨cmd₁s₁, whileb⟩⟩; simp_all
 
-
-
-    -- induction c
-    -- . apply skip_inv at cst₁; apply skip_inv at cst₂; rw [cst₁, ← cst₂]
-    -- . apply eval_inv at cst₁; apply eval_inv at cst₂; rw [cst₁, ← cst₂]
-    -- . case _ cmd₁ cmd₂ cmd₁h cmd₂h =>
-    --   apply seq_inv at cst₁; apply seq_inv at cst₂;
-
-
-    --   -- . exact right;
-
-    --   sorry
-
-
-
-    -- . sorry
-
-
-
-
-    sorry
 
 
 end ch7_1
